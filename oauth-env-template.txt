@@ -1,0 +1,38 @@
+# OAuth Environment Variables Template
+# Copy these variables to your .env file or environment configuration
+
+# ============================================
+# OAuth Configuration - Feature CR-DID-002
+# ============================================
+
+# OAuth Anonymous ID Salt (IMPORTANT: Change this in production)
+# This salt is used to generate privacy-protected anonymous identifiers
+# Keep this secret and never expose it publicly
+OAUTH_ANONYMOUS_ID_SALT=generate-a-random-salt-string-here
+
+# ============================================
+# Twitter OAuth 2.0 Configuration
+# ============================================
+# Get credentials from: https://developer.twitter.com/en/portal/dashboard
+TWITTER_CLIENT_ID=your_twitter_client_id
+TWITTER_CLIENT_SECRET=your_twitter_client_secret
+TWITTER_REDIRECT_URI=https://yourdomain.com/api/auth/oauth/twitter/callback
+
+# ============================================
+# Discord OAuth 2.0 Configuration
+# ============================================
+# Get credentials from: https://discord.com/developers/applications
+DISCORD_CLIENT_ID=your_discord_client_id
+DISCORD_CLIENT_SECRET=your_discord_client_secret
+DISCORD_REDIRECT_URI=https://yourdomain.com/api/auth/oauth/discord/callback
+
+# ============================================
+# Telegram OAuth Configuration
+# ============================================
+# Get bot token from: @BotFather on Telegram
+# Create bot: Send /newbot to @BotFather
+# Set domain: Send /setdomain to @BotFather
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_BOT_ID=your_telegram_bot_id
+TELEGRAM_BOT_USERNAME=your_bot_username
+

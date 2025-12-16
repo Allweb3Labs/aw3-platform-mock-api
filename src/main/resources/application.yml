@@ -1,0 +1,181 @@
+spring:
+  application:
+    name: aw3-platform
+  
+  datasource:
+    url: jdbc:mysql://localhost:3306/aw3_platform?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        use_sql_comments: true
+  
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:aw3-platform-secret-key-change-this-in-production}
+  expiration: 86400000 # 24 hours
+  refresh-expiration: 604800000 # 7 days
+
+# OAuth Configuration
+oauth:
+  anonymous-id-salt: ${OAUTH_ANONYMOUS_ID_SALT:change-this-random-salt-in-production}
+  
+  twitter:
+    client-id: ${TWITTER_CLIENT_ID:}
+    client-secret: ${TWITTER_CLIENT_SECRET:}
+    redirect-uri: ${TWITTER_REDIRECT_URI:http://localhost:8080/api/auth/oauth/twitter/callback}
+    scope: "tweet.read users.read offline.access"
+    authorization-url: "https://twitter.com/i/oauth2/authorize"
+    token-url: "https://api.twitter.com/2/oauth2/token"
+    user-info-url: "https://api.twitter.com/2/users/me"
+  
+  discord:
+    client-id: ${DISCORD_CLIENT_ID:}
+    client-secret: ${DISCORD_CLIENT_SECRET:}
+    redirect-uri: ${DISCORD_REDIRECT_URI:http://localhost:8080/api/auth/oauth/discord/callback}
+    scope: "identify email guilds"
+    authorization-url: "https://discord.com/oauth2/authorize"
+    token-url: "https://discord.com/api/oauth2/token"
+    user-info-url: "https://discord.com/api/users/@me"
+    token-revocation-url: "https://discord.com/api/oauth2/token/revoke"
+  
+  telegram:
+    bot-token: ${TELEGRAM_BOT_TOKEN:}
+    bot-id: ${TELEGRAM_BOT_ID:}
+    bot-username: ${TELEGRAM_BOT_USERNAME:}
+    auth-expiry-seconds: 86400 # 24 hours
+
+# Blockchain Configuration
+blockchain:
+  base:
+    mainnet:
+      chain-id: 8453
+      rpc-url: ${BASE_MAINNET_RPC:https://base-mainnet.g.alchemy.com/v2/}
+      contract-address: ${BASE_CONTRACT_ADDRESS:}
+    sepolia:
+      chain-id: 84532
+      rpc-url: ${BASE_SEPOLIA_RPC:https://base-sepolia.g.alchemy.com/v2/}
+      contract-address: ${BASE_SEPOLIA_CONTRACT_ADDRESS:}
+  arbitrum:
+    mainnet:
+      chain-id: 42161
+      rpc-url: ${ARBITRUM_MAINNET_RPC:https://arb-mainnet.g.alchemy.com/v2/}
+  
+  active-network: ${ACTIVE_NETWORK:sepolia}
+
+# Fee Configuration
+fee:
+  base-rates:
+    tier1-max: 5000
+    tier1-rate: 0.10
+    tier2-max: 20000
+    tier2-rate: 0.08
+    tier3-max: 50000
+    tier3-rate: 0.06
+    tier4-rate: 0.04
+  
+  reputation-discounts:
+    platinum-threshold: 100000
+    platinum-discount: 0.40
+    gold-threshold: 50000
+    gold-discount: 0.30
+    silver-threshold: 10000
+    silver-discount: 0.20
+    bronze-threshold: 600
+    bronze-discount: 0.10
+  
+  complexity-multipliers:
+    simple: 0.8
+    standard: 1.0
+    complex: 1.2
+    enterprise: 1.5
+  
+  oracle:
+    base-cost: 5.00
+    twitter-api-cost: 2.00
+    discord-api-cost: 1.50
+    onchain-verification-cost: 3.00
+    media-publication-cost: 4.00
+
+# CVPI Configuration
+cvpi:
+  calculation:
+    cache-ttl: 86400 # 24 hours
+    platform-stats-cache-ttl: 1800 # 30 minutes
+    recommendation-weight:
+      historical-cvpi: 0.35
+      audience-match: 0.25
+      budget-fit: 0.20
+      category-expertise: 0.15
+      reputation-match: 0.05
+
+# API Rate Limiting
+rate-limit:
+  per-user: 100
+  per-ip: 300
+  admin: 200
+  window-seconds: 60
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    root: INFO
+    com.aw3.platform: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
