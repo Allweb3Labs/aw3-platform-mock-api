@@ -1,0 +1,745 @@
+# Project Portal API Additions
+# These will be integrated into the main swagger.yaml file
+
+# Additional ENUMs for Project Portal
+ProjectCampaignSort:
+  type: integer
+  enum: [1, 2, 3, 4, 5]
+  description: |
+    Sort options enum:
+    1 = Newest
+    2 = Budget (High to Low)
+    3 = Applications (Most to Least)
+    4 = CVPI (Best to Worst)
+    5 = End Date (Soonest)
+  example: 1
+
+ApplicationSort:
+  type: integer
+  enum: [1, 2, 3, 4, 5]
+  description: |
+    Application sort enum:
+    1 = Newest
+    2 = Highest Reputation
+    3 = Best CVPI
+    4 = Most Followers
+    5 = Match Score
+  example: 2
+
+PaymentStructure:
+  type: integer
+  enum: [1, 2, 3]
+  description: |
+    Payment structure enum:
+    1 = Fixed Payment
+    2 = Performance-Based
+    3 = Milestone-Based
+  example: 1
+
+ApprovalMethod:
+  type: integer
+  enum: [1, 2]
+  description: |
+    Approval method enum:
+    1 = Pre-approval (review before publishing)
+    2 = Post-publishing (review after publishing)
+  example: 1
+
+# Project Dashboard Schema
+ProjectDashboardStats:
+  type: object
+  required:
+    - activeCampaigns
+    - pendingApplications
+    - budgetAvailable
+    - deliverablesSubmitted
+  properties:
+    activeCampaigns:
+      type: integer
+      example: 3
+    pendingApplications:
+      type: integer
+      example: 12
+    budgetAvailable:
+      type: number
+      example: 25000
+    deliverablesSubmitted:
+      type: integer
+      example: 3
+    totalCampaigns:
+      type: integer
+      example: 28
+    totalSpent:
+      type: number
+      example: 245000
+    reputationScore:
+      type: integer
+      example: 780
+    reputationTier:
+      type: string
+      example: "B"
+    avgCampaignCVPI:
+      type: number
+      example: 95.3
+
+# Campaign Creation Schemas
+CampaignCreationBasics:
+  type: object
+  required:
+    - name
+    - focusArea
+    - description
+    - durationType
+    - startDate
+  properties:
+    name:
+      type: string
+      maxLength: 100
+      example: "DeFi Protocol Launch"
+    focusArea:
+      $ref: '#/components/schemas/FocusArea'
+    description:
+      type: string
+      maxLength: 2000
+      example: "Help us launch our revolutionary DeFi protocol"
+    durationType:
+      type: integer
+      enum: [1, 2]
+      description: 1 = Fixed Duration, 2 = Ongoing
+    startDate:
+      type: string
+      format: date
+    endDate:
+      type: string
+      format: date
+      description: Required if durationType is Fixed
+    coverImage:
+      type: string
+      format: uri
+
+CampaignBudgetConfig:
+  type: object
+  required:
+    - creatorBudget
+    - numberOfCreators
+    - paymentStructure
+  properties:
+    creatorBudget:
+      type: number
+      minimum: 500
+      example: 10000
+    numberOfCreators:
+      type: integer
+      minimum: 1
+      maximum: 50
+      example: 3
+    paymentStructure:
+      $ref: '#/components/schemas/PaymentStructure'
+    payWithAW3Token:
+      type: boolean
+      default: false
+
+CampaignRequirements:
+  type: object
+  required:
+    - deliverableTypes
+    - contentGuidelines
+    - approvalMethod
+    - kpiTargets
+  properties:
+    deliverableTypes:
+      type: array
+      items:
+        $ref: '#/components/schemas/DeliverableType'
+    contentGuidelines:
+      type: string
+      maxLength: 2000
+    approvalMethod:
+      $ref: '#/components/schemas/ApprovalMethod'
+    kpiTargets:
+      type: array
+      items:
+        type: object
+        required:
+          - metricType
+          - targetValue
+          - weight
+        properties:
+          metricType:
+            type: string
+            enum: [EngagementRate, Impressions, ClickThroughRate, Conversions, FollowerGrowth, Custom]
+          targetValue:
+            type: number
+          weight:
+            type: integer
+            minimum: 0
+            maximum: 100
+          verificationMethod:
+            type: string
+            enum: [Oracle, Manual, Hybrid]
+
+CampaignCreatorCriteria:
+  type: object
+  properties:
+    minReputationScore:
+      type: integer
+      minimum: 0
+      maximum: 1000
+      default: 600
+    cvpiRange:
+      type: object
+      properties:
+        min:
+          type: number
+          default: 0
+        max:
+          type: number
+          default: 150
+    platformRequirements:
+      type: array
+      items:
+        type: object
+        properties:
+          platform:
+            $ref: '#/components/schemas/SocialPlatform'
+          minFollowers:
+            type: integer
+          maxFollowers:
+            type: integer
+    verticalExperience:
+      type: array
+      items:
+        $ref: '#/components/schemas/FocusArea'
+    geographicFocus:
+      type: array
+      items:
+        type: string
+
+CampaignCreateRequest:
+  type: object
+  required:
+    - basics
+    - budget
+    - requirements
+  properties:
+    basics:
+      $ref: '#/components/schemas/CampaignCreationBasics'
+    budget:
+      $ref: '#/components/schemas/CampaignBudgetConfig'
+    requirements:
+      $ref: '#/components/schemas/CampaignRequirements'
+    creatorCriteria:
+      $ref: '#/components/schemas/CampaignCreatorCriteria'
+
+CampaignTransactionResponse:
+  type: object
+  required:
+    - campaignId
+    - transactionHash
+    - status
+  properties:
+    campaignId:
+      type: string
+      format: uuid
+    transactionHash:
+      type: string
+      example: "0x8a2f3d1c..."
+    status:
+      type: string
+      enum: [PENDING, CONFIRMED, FAILED]
+    estimatedConfirmationTime:
+      type: integer
+      description: Seconds until confirmation
+    totalLocked:
+      type: number
+      description: Total amount locked in escrow
+
+# Project Campaign List Response
+ProjectCampaignListItem:
+  type: object
+  required:
+    - campaignId
+    - name
+    - focusArea
+    - status
+    - budgetTotal
+    - budgetRemaining
+  properties:
+    campaignId:
+      type: string
+      format: uuid
+    name:
+      type: string
+    focusArea:
+      $ref: '#/components/schemas/FocusArea'
+    status:
+      $ref: '#/components/schemas/CampaignStatus'
+    budgetTotal:
+      type: number
+    budgetRemaining:
+      type: number
+    applicationCount:
+      type: integer
+    approvedCount:
+      type: integer
+    deliverableCount:
+      type: integer
+    daysRemaining:
+      type: integer
+      nullable: true
+    cvpiScore:
+      type: number
+      nullable: true
+    cvpiClassification:
+      type: string
+      enum: [Excellent, Good, Average, Below Average, Poor]
+    progressStage:
+      type: string
+      enum: [Applications, InProgress, Verification, Completed]
+    createdAt:
+      type: string
+      format: date-time
+    endDate:
+      type: string
+      format: date-time
+      nullable: true
+
+# Campaign Metrics (for dashboard view)
+CampaignMetrics:
+  type: object
+  required:
+    - budgetStatus
+    - applications
+    - progress
+    - cvpiScore
+  properties:
+    budgetStatus:
+      type: object
+      properties:
+        total:
+          type: number
+        remaining:
+          type: number
+        spent:
+          type: number
+        percentageUsed:
+          type: number
+    applications:
+      type: object
+      properties:
+        received:
+          type: integer
+        approved:
+          type: integer
+        pendingReview:
+          type: integer
+        rejected:
+          type: integer
+    progress:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/CampaignStatus'
+        daysElapsed:
+          type: integer
+        daysTotal:
+          type: integer
+        percentageComplete:
+          type: number
+        endDate:
+          type: string
+          format: date-time
+    cvpiScore:
+      type: object
+      properties:
+        current:
+          type: number
+        classification:
+          type: string
+        trend:
+          type: number
+        verticalComparison:
+          type: number
+
+# Campaign Overview
+CampaignOverview:
+  type: object
+  required:
+    - campaignId
+    - details
+    - kpiTargets
+    - approvedCreators
+  properties:
+    campaignId:
+      type: string
+      format: uuid
+    details:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        deliverableRequirements:
+          type: array
+          items:
+            type: string
+        contentGuidelines:
+          type: string
+    kpiTargets:
+      type: array
+      items:
+        type: object
+        properties:
+          kpiName:
+            type: string
+          target:
+            type: number
+          weight:
+            type: integer
+          currentAverage:
+            type: number
+          status:
+            type: string
+            enum: [OnTrack, Exceeding, BelowTarget]
+    approvedCreators:
+      type: array
+      items:
+        type: object
+        properties:
+          creatorId:
+            type: string
+            format: uuid
+          name:
+            type: string
+          avatar:
+            type: string
+            format: uri
+          reputation:
+            type: integer
+          payment:
+            type: number
+          deliverableStatus:
+            $ref: '#/components/schemas/DeliverableStatus'
+          cvpiContribution:
+            type: number
+
+# Application Management Schemas
+ProjectApplication:
+  type: object
+  required:
+    - applicationId
+    - campaignId
+    - creatorId
+    - status
+  properties:
+    applicationId:
+      type: string
+      format: uuid
+    campaignId:
+      type: string
+      format: uuid
+    campaignName:
+      type: string
+    creatorId:
+      type: string
+      format: uuid
+    creatorName:
+      type: string
+    creatorAvatar:
+      type: string
+      format: uri
+    reputation:
+      type: integer
+    reputationTier:
+      type: string
+    avgCVPI:
+      type: number
+    cvpiClassification:
+      type: string
+    socialStats:
+      type: array
+      items:
+        type: object
+        properties:
+          platform:
+            $ref: '#/components/schemas/SocialPlatform'
+          followers:
+            type: integer
+    campaignsCompleted:
+      type: integer
+    successRate:
+      type: number
+    applicationMessage:
+      type: string
+    portfolioLinks:
+      type: array
+      items:
+        type: object
+        properties:
+          url:
+            type: string
+            format: uri
+          title:
+            type: string
+          description:
+            type: string
+    appliedAt:
+      type: string
+      format: date-time
+    status:
+      $ref: '#/components/schemas/ApplicationStatus'
+    matchScore:
+      type: number
+      nullable: true
+
+BatchApprovalRequest:
+  type: object
+  required:
+    - applicationIds
+  properties:
+    applicationIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 1
+
+BatchApprovalResponse:
+  type: object
+  required:
+    - successCount
+    - failedIds
+  properties:
+    successCount:
+      type: integer
+    failedIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    errors:
+      type: array
+      items:
+        type: object
+        properties:
+          applicationId:
+            type: string
+            format: uuid
+          reason:
+            type: string
+
+# Campaign Analytics Schema
+CampaignAnalytics:
+  type: object
+  required:
+    - summary
+    - cvpiBreakdown
+    - kpiAchievement
+    - audienceReach
+    - costEfficiency
+  properties:
+    summary:
+      type: object
+      properties:
+        totalSpend:
+          type: number
+        avgCVPI:
+          type: number
+        kpiSuccessRate:
+          type: number
+        avgCreatorReputation:
+          type: integer
+        avgCompletionTime:
+          type: integer
+    cvpiBreakdown:
+      type: array
+      items:
+        type: object
+        properties:
+          creatorName:
+            type: string
+          cvpiScore:
+            type: number
+          classification:
+            type: string
+          cost:
+            type: number
+          impactScore:
+            type: number
+    kpiAchievement:
+      type: array
+      items:
+        type: object
+        properties:
+          date:
+            type: string
+            format: date
+          kpiName:
+            type: string
+          achievementPercentage:
+            type: number
+    audienceReach:
+      type: object
+      properties:
+        totalImpressions:
+          type: integer
+        uniqueReach:
+          type: integer
+        totalEngagements:
+          type: integer
+        avgEngagementRate:
+          type: number
+        platformBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              platform:
+                $ref: '#/components/schemas/SocialPlatform'
+              impressions:
+                type: integer
+              percentage:
+                type: number
+    costEfficiency:
+      type: object
+      properties:
+        costPer1KImpressions:
+          type: number
+        costPerEngagement:
+          type: number
+        costPerConversion:
+          type: number
+        comparisonToVerticalAvg:
+          type: number
+        comparisonToPlatformAvg:
+          type: number
+
+# Financial Schema
+CampaignFinancials:
+  type: object
+  required:
+    - escrowOverview
+    - budgetAllocation
+    - paymentHistory
+    - feeBreakdown
+  properties:
+    escrowOverview:
+      type: object
+      properties:
+        smartContractAddress:
+          type: string
+        chain:
+          type: string
+          example: "BASE Mainnet"
+        totalLocked:
+          type: number
+        totalReleased:
+          type: number
+        remainingBalance:
+          type: number
+        expectedRefund:
+          type: number
+    budgetAllocation:
+      type: object
+      properties:
+        creatorPayments:
+          type: number
+        serviceFees:
+          type: number
+        oracleFees:
+          type: number
+        escrowBuffer:
+          type: number
+        unused:
+          type: number
+    paymentHistory:
+      type: array
+      items:
+        type: object
+        properties:
+          date:
+            type: string
+            format: date-time
+          type:
+            type: string
+            enum: [CreatorPayment, ServiceFee, OracleFee, EscrowLock, BufferRefund]
+          recipient:
+            type: string
+          amount:
+            type: number
+          status:
+            type: string
+            enum: [Completed, Pending, Failed]
+          transactionHash:
+            type: string
+    feeBreakdown:
+      type: object
+      properties:
+        baseRate:
+          type: number
+        complexityMultiplier:
+          type: number
+        reputationDiscount:
+          type: number
+        tokenPaymentDiscount:
+          type: number
+        effectiveRate:
+          type: number
+        totalSaved:
+          type: number
+
+# Creator Discovery for Project
+CreatorDiscoveryResult:
+  type: object
+  required:
+    - creatorId
+    - displayName
+    - reputation
+    - avgCVPI
+  properties:
+    creatorId:
+      type: string
+      format: uuid
+    displayName:
+      type: string
+    avatar:
+      type: string
+      format: uri
+    reputation:
+      type: integer
+    reputationTier:
+      type: string
+    avgCVPI:
+      type: number
+    cvpiClassification:
+      type: string
+    cvpiRanking:
+      type: string
+      description: "e.g., Top 15% platform-wide"
+    socialStats:
+      type: array
+      items:
+        type: object
+        properties:
+          platform:
+            $ref: '#/components/schemas/SocialPlatform'
+          followers:
+            type: integer
+    campaignsCompleted:
+      type: integer
+    successRate:
+      type: number
+    verticalExperience:
+      type: array
+      items:
+        $ref: '#/components/schemas/FocusArea'
+    estimatedCVPI:
+      type: number
+      description: Estimated CVPI for your specific campaign
+    available:
+      type: boolean
+    lastActive:
+      type: string
+      format: date-time
+

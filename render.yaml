@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: aw3-api-mock
+    runtime: node
+    rootDir: BackEnd Endpoint/swagger-mock-api
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+    plan: free
+

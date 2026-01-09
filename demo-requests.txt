@@ -1,0 +1,7 @@
+# Demo Requests Storage
+# Format: One JSON object per line
+# Each line contains: requestId, email, userType, socialHandle, socialPlatform, source, timestamp, ipAddress, createdAt
+# This file stores all demo request submissions from the website form
+{"requestId":"req_eab3faa4ee33","email":"test@example.com","userType":"creator","socialHandle":"test_handle","socialPlatform":"telegram","source":"homepage","timestamp":1767852343506,"ipAddress":"127.0.0.1","createdAt":"2026-01-08T06:05:43.506Z"}
+{"requestId":"req_4f297a0886b7","email":"project@example.com","userType":"project_owner","socialHandle":"project_handle","socialPlatform":"x","source":null,"timestamp":1767852343518,"ipAddress":"127.0.0.1","createdAt":"2026-01-08T06:05:43.517Z"}
+{"requestId":"req_3eac4361d728","email":"test3@example.com","userType":"creator","socialHandle":"test_handle","socialPlatform":"telegram","source":null,"timestamp":1767852343521,"ipAddress":"127.0.0.1","createdAt":"2026-01-08T06:05:43.521Z"}
