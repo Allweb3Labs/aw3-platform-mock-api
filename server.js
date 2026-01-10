@@ -297,10 +297,13 @@ const readDemoRequests = async () => {
       }
     }).filter(item => item !== null);
   } catch (error) {
-    if (error.code === 'ENOENT') {
-      return []; // File doesn't exist yet
+    // In serverless environments, file system may not be available
+    // Return empty array to allow the API to continue functioning
+    if (error.code === 'ENOENT' || error.code === 'EROFS' || error.code === 'EPERM') {
+      return []; // File doesn't exist or read-only filesystem
     }
-    throw error;
+    console.log('File read error (non-critical for mock API):', error.message);
+    return []; // Return empty array to allow API to continue
   }
 };
 
@@ -2506,8 +2509,14 @@ app.post('/api/v1/demo-requests', async (req, res) => {
       createdAt
     };
     
-    // Write to file
-    await writeDemoRequest(requestData);
+    // Try to write to file (will fail in serverless, but that's OK for mock API)
+    try {
+      await writeDemoRequest(requestData);
+    } catch (writeError) {
+      // In serverless environments like Vercel, file writes will fail
+      // Log the error but don't fail the request since this is a mock API
+      console.log('Note: File write skipped (serverless environment):', writeError.message);
+    }
     
     // Return success response
     return res.status(201).json({
