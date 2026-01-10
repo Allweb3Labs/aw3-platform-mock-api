@@ -16,35 +16,40 @@ app.use(express.json());
 // Load Swagger document with error handling
 let swaggerDocument;
 try {
-  // Try multiple paths for Vercel compatibility
-  let swaggerPath = path.join(__dirname, 'swagger.yaml');
-  
-  // Check if file exists, if not try alternative paths
   const fs = require('fs');
-  if (!fs.existsSync(swaggerPath)) {
-    // Try current working directory
-    swaggerPath = path.join(process.cwd(), 'swagger.yaml');
+  
+  // First, try to load from swagger.json (pre-built for Vercel)
+  const jsonPath = path.join(__dirname, 'swagger.json');
+  if (fs.existsSync(jsonPath)) {
+    console.log('Loading swagger.json from:', jsonPath);
+    const jsonContent = fs.readFileSync(jsonPath, 'utf8');
+    swaggerDocument = JSON.parse(jsonContent);
+    console.log('✅ Swagger document loaded from JSON');
+    console.log('   Number of paths:', Object.keys(swaggerDocument.paths || {}).length);
+  } else {
+    // Fallback to YAML
+    console.log('swagger.json not found, trying YAML...');
+    let swaggerPath = path.join(__dirname, 'swagger.yaml');
+    
     if (!fs.existsSync(swaggerPath)) {
-      // Try relative path
-      swaggerPath = './swagger.yaml';
+      swaggerPath = path.join(process.cwd(), 'swagger.yaml');
+      if (!fs.existsSync(swaggerPath)) {
+        swaggerPath = './swagger.yaml';
+      }
     }
+    
+    console.log('Loading swagger.yaml from:', swaggerPath);
+    swaggerDocument = YAML.load(swaggerPath);
+    console.log('✅ Swagger document loaded from YAML');
+    console.log('   Number of paths:', Object.keys(swaggerDocument.paths || {}).length);
   }
   
-  console.log('Loading swagger.yaml from:', swaggerPath);
-  console.log('Current working directory:', process.cwd());
-  console.log('__dirname:', __dirname);
-  console.log('File exists:', fs.existsSync(swaggerPath));
-  
-  swaggerDocument = YAML.load(swaggerPath);
-  
-  if (swaggerDocument && swaggerDocument.paths && Object.keys(swaggerDocument.paths).length > 0) {
-    console.log('Swagger document loaded successfully');
-    console.log('Number of paths:', Object.keys(swaggerDocument.paths).length);
-  } else {
+  // Validate loaded document
+  if (!swaggerDocument || !swaggerDocument.paths || Object.keys(swaggerDocument.paths).length === 0) {
     throw new Error('Swagger document is empty or invalid');
   }
 } catch (error) {
-  console.error('Failed to load swagger.yaml:', error);
+  console.error('❌ Failed to load swagger document:', error.message);
   console.error('Error stack:', error.stack);
   // Use a minimal fallback document
   swaggerDocument = {

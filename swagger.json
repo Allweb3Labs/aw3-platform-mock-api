@@ -1,0 +1,4931 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "AW3 Platform API",
+    "description": "Backend API for AW3 Platform MVP - A Web3-native creator economy platform.\n\n## Authentication Architecture\n\n**Platform Authentication is handled entirely by Privy (Frontend)**\n\n### How it works:\n- **Provider:** Privy (integrated on Creator Portal frontend)\n- **Methods:** Gmail, Twitter, Wallet (MetaMask, WalletConnect, etc.)\n- **Flow:** User authenticates via Privy → Privy issues ACCESS_TOKEN → Frontend sends token in `Authorization` header\n- **Backend role:** Only validates the Privy ACCESS_TOKEN from the `Authorization` header\n- **No backend auth endpoints needed:** Login, Register, Refresh, Logout are all handled by Privy SDK\n\n### Social Verification (Independent Service)\n- **Purpose:** Verify social accounts and fetch metrics for campaigns\n- **Provider:** Independent backend service (NOT Privy)\n- **Platforms:** Twitter, Discord, Telegram, Instagram, YouTube\n- **Process:** Own OAuth 2.0 implementation to each platform\n- **Result:** Verified social accounts with follower counts and engagement metrics\n- **Endpoints:** `/creator/profile/social-verification`, `/social/*`\n\n**Key Distinction:**\n- Privy authentication (platform login) is completely separate from social verification (campaign metrics)\n- A user logs in via Privy, then separately verifies social accounts for campaign tracking\n\n## User Roles\nCREATOR, PROJECTOR, ADMIN\n\n## Key Features\n- Privy-based platform authentication (email/social/wallet)\n- Independent social verification service with OAuth implementation\n- Campaign management with escrow\n- CVPI (Creator Value Performance Index) scoring with integrated reputation\n- Certificate and achievement system\n",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Allweb3 Labs",
+      "url": "https://allweb3.com"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://aw3-platform-mock-api.onrender.com/api",
+      "description": "Production Mock API Server"
+    },
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Local Development"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Request Demo",
+      "description": "Demo request submission for website visitors"
+    },
+    {
+      "name": "Creator Profile",
+      "description": "Creator profile management"
+    },
+    {
+      "name": "Creator Campaigns",
+      "description": "Campaign discovery for creators"
+    },
+    {
+      "name": "Creator Applications",
+      "description": "Application management for creators"
+    },
+    {
+      "name": "Creator Deliverables",
+      "description": "Deliverable submission for creators"
+    },
+    {
+      "name": "Creator Earnings",
+      "description": "Earnings and payments for creators"
+    },
+    {
+      "name": "Creator CVPI",
+      "description": "CVPI score and analytics with reputation data"
+    },
+    {
+      "name": "Creator Certificates",
+      "description": "Certificate and achievement management"
+    },
+    {
+      "name": "Creator Settings",
+      "description": "User settings management"
+    },
+    {
+      "name": "Creator System",
+      "description": "System-level reference data for creators (e.g., localization literals)"
+    },
+    {
+      "name": "Dashboard",
+      "description": "Dashboard data endpoints"
+    },
+    {
+      "name": "Filters",
+      "description": "Filter options for campaign search"
+    },
+    {
+      "name": "Public Marketplace",
+      "description": "Public marketplace endpoints"
+    },
+    {
+      "name": "Project Dashboard",
+      "description": "Project dashboard and statistics"
+    },
+    {
+      "name": "Project Campaigns",
+      "description": "Campaign management for projects"
+    },
+    {
+      "name": "Project Applications",
+      "description": "Application review and management"
+    },
+    {
+      "name": "Project Deliverables",
+      "description": "Deliverable verification and payments"
+    },
+    {
+      "name": "Project Analytics",
+      "description": "Campaign analytics and insights"
+    },
+    {
+      "name": "Project Finance",
+      "description": "Budget and payment management"
+    },
+    {
+      "name": "Project Creators",
+      "description": "Creator discovery and management"
+    },
+    {
+      "name": "Admin Dashboard",
+      "description": "Admin overview and platform-level statistics"
+    },
+    {
+      "name": "Admin Creators",
+      "description": "Admin creator management and reputation controls"
+    },
+    {
+      "name": "Admin Projects",
+      "description": "Admin project management and reputation controls"
+    },
+    {
+      "name": "Admin Campaigns",
+      "description": "Admin campaign oversight and force actions"
+    },
+    {
+      "name": "Admin Finance",
+      "description": "Admin financial oversight, fee and distribution configuration"
+    },
+    {
+      "name": "Admin CVPI",
+      "description": "Admin CVPI algorithm, benchmarks, and analytics"
+    },
+    {
+      "name": "Admin Disputes",
+      "description": "Admin dispute resolution and arbitration"
+    },
+    {
+      "name": "Admin System",
+      "description": "Admin system health, emergency controls, and audit logs"
+    },
+    {
+      "name": "Admin Search",
+      "description": "Admin global search across creators, projects, campaigns, and disputes"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token obtained from wallet authentication"
+      }
+    },
+    "schemas": {
+      "UserRole": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "description": "User role enum:\n1 = Creator\n2 = Projector\n3 = Admin\n4 = Validator\n",
+        "example": 1
+      },
+      "WalletType": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "description": "Wallet type enum:\n1 = MetaMask\n2 = WalletConnect\n3 = Coinbase\n4 = Rainbow\n",
+        "example": 1
+      },
+      "SocialPlatform": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "description": "Social platform enum:\n1 = Twitter\n2 = YouTube\n3 = Instagram\n4 = TikTok\n5 = Discord\n",
+        "example": 1
+      },
+      "FocusArea": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "description": "Focus area enum:\n1 = DeFi\n2 = NFT\n3 = Gaming\n4 = Infrastructure\n5 = L2\n6 = DAO\n7 = Metaverse\n8 = Trading\n9 = Other\n",
+        "example": 2
+      },
+      "CampaignStatus": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "description": "Campaign status enum:\n1 = DRAFT\n2 = PENDING_ESCROW\n3 = ACTIVE\n4 = IN_PROGRESS\n5 = COMPLETED\n6 = CANCELLED\n7 = SUSPENDED\n",
+        "example": 3
+      },
+      "ApplicationStatus": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "description": "Application status enum:\n1 = PENDING\n2 = ACCEPTED\n3 = REJECTED\n4 = WITHDRAWN\n",
+        "example": 1
+      },
+      "DeliverableStatus": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "description": "Deliverable status enum:\n1 = SUBMITTED\n2 = PENDING_VERIFICATION\n3 = VERIFIED\n4 = REJECTED\n5 = PAID\n",
+        "example": 3
+      },
+      "DeliverableType": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "description": "Deliverable type enum (UI-aligned):\n1 = Twitter Posts\n2 = Videos\n3 = Articles\n4 = AMAs\n5 = Discord Management\n6 = Community Giveaways\n7 = Instagram Post\n8 = TikTok\n",
+        "example": 2
+      },
+      "CampaignDuration": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "description": "Campaign duration enum:\n1 = Less Than 1 Week\n2 = 1-2 Weeks\n3 = 2-4 Weeks\n4 = 1-3 Months\n5 = 3+ Months\n",
+        "example": 1
+      },
+      "CampaignStage": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "description": "Campaign stage enum (UI-aligned):\n1 = Ideation\n2 = Live Configuration\n3 = Notification Preferences\n4 = Privacy Controls\n5 = Wallet & Payout\n6 = Security\n",
+        "example": 2
+      },
+      "Complexity": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3
+        ],
+        "description": "Complexity enum:\n1 = LOW\n2 = MEDIUM\n3 = HIGH\n",
+        "example": 2
+      },
+      "PaymentToken": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "description": "Payment token enum:\n1 = USDC\n2 = USDT\n3 = ETH\n4 = AW3\n",
+        "example": 1
+      },
+      "TimePeriod": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "description": "Time period enum:\n1 = 7d\n2 = 30d\n3 = 90d\n4 = 1y\n",
+        "example": 2
+      },
+      "EarningsRange": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3
+        ],
+        "description": "Earnings range enum:\n1 = Hourly\n2 = Daily\n3 = Monthly\n",
+        "example": 3
+      },
+      "ProjectCampaignSort": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "description": "Sort options for project campaign list:\n1 = Newest\n2 = Budget High to Low\n3 = Applications Most to Least\n4 = CVPI Best to Worst\n5 = End Date Soonest\n",
+        "example": 1
+      },
+      "ApplicationSort": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "description": "Application sort enum:\n1 = Newest\n2 = Highest Reputation\n3 = Best CVPI\n4 = Most Followers\n5 = Match Score\n",
+        "example": 2
+      },
+      "PaymentStructure": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3
+        ],
+        "description": "Payment structure enum:\n1 = Fixed Payment\n2 = Performance-Based\n3 = Milestone-Based\n",
+        "example": 1
+      },
+      "ApprovalMethod": {
+        "type": "integer",
+        "enum": [
+          1,
+          2
+        ],
+        "description": "Approval method enum:\n1 = Pre-approval review before publishing\n2 = Post-publishing review after publishing\n",
+        "example": 1
+      },
+      "DurationType": {
+        "type": "integer",
+        "enum": [
+          1,
+          2
+        ],
+        "description": "Campaign duration type:\n1 = Fixed Duration with end date\n2 = Ongoing until closed\n",
+        "example": 1
+      },
+      "ApiResponse": {
+        "type": "object",
+        "required": [
+          "success"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "object",
+            "description": "Response data (only present when success is true)"
+          },
+          "error": {
+            "type": "object",
+            "description": "Error details (only present when success is false)",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "example": 400
+              },
+              "message": {
+                "type": "string",
+                "example": "Error message"
+              }
+            }
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": [
+          "currentPage",
+          "totalPages",
+          "totalElements",
+          "pageSize"
+        ],
+        "properties": {
+          "currentPage": {
+            "type": "integer",
+            "example": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 5
+          },
+          "totalElements": {
+            "type": "integer",
+            "example": 100
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 20
+          }
+        }
+      },
+      "SocialAccount": {
+        "type": "object",
+        "required": [
+          "platform",
+          "handle",
+          "verified"
+        ],
+        "properties": {
+          "platform": {
+            "$ref": "#/components/schemas/SocialPlatform"
+          },
+          "handle": {
+            "type": "string",
+            "example": "@cryptoinfluencer"
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://twitter.com/cryptoinfluencer"
+          },
+          "followers": {
+            "type": "integer",
+            "example": 125000
+          },
+          "verified": {
+            "type": "boolean",
+            "example": true
+          },
+          "verifiedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreatorProfile": {
+        "type": "object",
+        "required": [
+          "userId",
+          "walletAddress",
+          "role",
+          "profileComplete"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "walletAddress": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string",
+            "format": "uri"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "focusArea": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FocusArea"
+            },
+            "description": "Array of focus areas"
+          },
+          "socialAccounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialAccount"
+            }
+          },
+          "profileComplete": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreatorProfileUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "avatar": {
+            "type": "string",
+            "format": "uri"
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "focusArea": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FocusArea"
+            }
+          }
+        }
+      },
+      "CampaignListItem": {
+        "type": "object",
+        "required": [
+          "campaignId",
+          "projectId",
+          "title",
+          "status",
+          "budgetAmount",
+          "budgetToken",
+          "deadline"
+        ],
+        "properties": {
+          "campaignId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CampaignStatus"
+          },
+          "budgetAmount": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "budgetToken": {
+            "$ref": "#/components/schemas/PaymentToken"
+          },
+          "numberOfApplicants": {
+            "type": "integer",
+            "description": "Total number of applicants"
+          },
+          "numberOfDeliveries": {
+            "type": "integer",
+            "description": "Number of deliverables required"
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "kpiTargets": {
+            "type": "object"
+          },
+          "requiredReputation": {
+            "type": "integer"
+          },
+          "projectAvatar": {
+            "type": "string",
+            "format": "uri"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CampaignDetail": {
+        "type": "object",
+        "required": [
+          "campaignId",
+          "projectId",
+          "title",
+          "description",
+          "status",
+          "budgetAmount",
+          "budgetToken"
+        ],
+        "properties": {
+          "campaignId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "objective": {
+            "type": "string",
+            "description": "Explicit campaign objective description"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CampaignStatus"
+          },
+          "budgetAmount": {
+            "type": "number"
+          },
+          "budgetToken": {
+            "$ref": "#/components/schemas/PaymentToken"
+          },
+          "numberOfCreators": {
+            "type": "integer"
+          },
+          "numberOfApplicants": {
+            "type": "integer"
+          },
+          "numberOfDeliveries": {
+            "type": "integer"
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "complexity": {
+            "$ref": "#/components/schemas/Complexity"
+          },
+          "kpiTargets": {
+            "type": "object"
+          },
+          "requiredReputation": {
+            "type": "integer"
+          },
+          "projectInfo": {
+            "type": "object",
+            "required": [
+              "projectId",
+              "projectName",
+              "projectAvatar"
+            ],
+            "properties": {
+              "projectId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "projectName": {
+                "type": "string"
+              },
+              "projectAvatar": {
+                "type": "string",
+                "format": "uri"
+              },
+              "website": {
+                "type": "string",
+                "format": "uri"
+              },
+              "socialChannels": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SocialAccount"
+                }
+              }
+            }
+          },
+          "paymentTerms": {
+            "type": "object",
+            "required": [
+              "paymentMethod",
+              "paymentSchedule",
+              "paymentConditions"
+            ],
+            "properties": {
+              "paymentMethod": {
+                "type": "string",
+                "description": "Payment method description"
+              },
+              "paymentSchedule": {
+                "type": "string",
+                "description": "Payment schedule (e.g., milestone-based, completion-based)"
+              },
+              "paymentConditions": {
+                "type": "string",
+                "description": "Conditions for payment release"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Application": {
+        "type": "object",
+        "required": [
+          "applicationId",
+          "campaignId",
+          "creatorId",
+          "status"
+        ],
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "campaignId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "campaignTitle": {
+            "type": "string"
+          },
+          "creatorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proposedRate": {
+            "type": "number"
+          },
+          "proposal": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ApplicationStatus"
+          },
+          "portfolioLinks": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "relevantExperience": {
+            "type": "string"
+          },
+          "estimatedCompletionDays": {
+            "type": "integer"
+          },
+          "matchScore": {
+            "type": "number",
+            "nullable": true
+          },
+          "appliedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reviewedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "ApplicationRequest": {
+        "type": "object",
+        "required": [
+          "campaignId",
+          "proposal"
+        ],
+        "properties": {
+          "campaignId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proposedRate": {
+            "type": "number"
+          },
+          "proposal": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "portfolioLinks": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "relevantExperience": {
+            "type": "string"
+          },
+          "estimatedCompletionDays": {
+            "type": "integer"
+          }
+        }
+      },
+      "Deliverable": {
+        "type": "object",
+        "required": [
+          "deliverableId",
+          "campaignId",
+          "creatorId",
+          "deliverableType",
+          "status"
+        ],
+        "properties": {
+          "deliverableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "campaignId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "creatorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contentUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "deliverableType": {
+            "$ref": "#/components/schemas/DeliverableType"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/SocialPlatform"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DeliverableStatus"
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "views": {
+                "type": "integer"
+              },
+              "likes": {
+                "type": "integer"
+              },
+              "comments": {
+                "type": "integer"
+              },
+              "shares": {
+                "type": "integer"
+              },
+              "engagementRate": {
+                "type": "number"
+              }
+            }
+          },
+          "cvpiScore": {
+            "type": "number",
+            "nullable": true
+          },
+          "paymentAmount": {
+            "type": "number",
+            "nullable": true
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "verifiedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "DeliverableRequest": {
+        "type": "object",
+        "required": [
+          "campaignId",
+          "contentUrl",
+          "deliverableType",
+          "platform"
+        ],
+        "properties": {
+          "campaignId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contentUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "deliverableType": {
+            "$ref": "#/components/schemas/DeliverableType"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/SocialPlatform"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "EarningsSummary": {
+        "type": "object",
+        "required": [
+          "totalEarned",
+          "pendingPayments",
+          "availableBalance",
+          "averageROI",
+          "growthRate"
+        ],
+        "properties": {
+          "totalEarned": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Total earnings to date"
+          },
+          "pendingPayments": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Payments pending verification"
+          },
+          "availableBalance": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Available for withdrawal"
+          },
+          "currency": {
+            "type": "string",
+            "example": "USDC"
+          },
+          "averageROI": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Average return on investment percentage",
+            "example": 45.8
+          },
+          "growthRate": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Month-over-month growth rate percentage",
+            "example": 12.5
+          }
+        }
+      },
+      "EarningsHistoryChart": {
+        "type": "object",
+        "required": [
+          "data",
+          "range"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "timestamp",
+                "amount"
+              ],
+              "properties": {
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "amount": {
+                  "type": "number"
+                },
+                "transactionCount": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "range": {
+            "$ref": "#/components/schemas/EarningsRange"
+          },
+          "totalAmount": {
+            "type": "number"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "periodEnd": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CVPIScore": {
+        "type": "object",
+        "required": [
+          "userId",
+          "overallScore",
+          "components",
+          "reputation",
+          "lastUpdated"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "overallScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 82.3
+          },
+          "components": {
+            "type": "object",
+            "required": [
+              "engagement",
+              "reach",
+              "conversion",
+              "consistency",
+              "quality"
+            ],
+            "properties": {
+              "engagement": {
+                "type": "number"
+              },
+              "reach": {
+                "type": "number"
+              },
+              "conversion": {
+                "type": "number"
+              },
+              "consistency": {
+                "type": "number"
+              },
+              "quality": {
+                "type": "number"
+              }
+            }
+          },
+          "reputation": {
+            "type": "object",
+            "required": [
+              "score",
+              "tier",
+              "totalReviews",
+              "averageRating"
+            ],
+            "properties": {
+              "score": {
+                "type": "number",
+                "example": 87.5
+              },
+              "tier": {
+                "type": "string",
+                "example": "GOLD"
+              },
+              "totalReviews": {
+                "type": "integer",
+                "example": 42
+              },
+              "averageRating": {
+                "type": "number",
+                "example": 4.7
+              }
+            }
+          },
+          "trend": {
+            "type": "string",
+            "enum": [
+              "UP",
+              "DOWN",
+              "STABLE"
+            ]
+          },
+          "percentile": {
+            "type": "integer",
+            "example": 87
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CVPIHistory": {
+        "type": "object",
+        "required": [
+          "history",
+          "period",
+          "limit"
+        ],
+        "properties": {
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "date",
+                "score"
+              ],
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "score": {
+                  "type": "number"
+                },
+                "reputation": {
+                  "type": "number",
+                  "description": "Reputation score at that date"
+                }
+              }
+            }
+          },
+          "period": {
+            "$ref": "#/components/schemas/TimePeriod"
+          },
+          "limit": {
+            "type": "integer"
+          }
+        }
+      },
+      "Certificate": {
+        "type": "object",
+        "required": [
+          "certificateId",
+          "certificateType",
+          "issueDate",
+          "imageUrl"
+        ],
+        "properties": {
+          "certificateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificateType": {
+            "type": "string",
+            "example": "Top Performer",
+            "description": "Type of certificate"
+          },
+          "title": {
+            "type": "string",
+            "example": "DeFi Campaign Excellence"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Certificate image URL"
+          },
+          "relatedCampaign": {
+            "type": "object",
+            "properties": {
+              "campaignId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "campaignTitle": {
+                "type": "string"
+              },
+              "projectName": {
+                "type": "string"
+              }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional certificate metadata"
+          }
+        }
+      },
+      "LanguageSettings": {
+        "type": "object",
+        "required": [
+          "language"
+        ],
+        "properties": {
+          "language": {
+            "type": "string",
+            "example": "en",
+            "description": "Language code (en, zh, es, etc.)"
+          },
+          "timezone": {
+            "type": "string",
+            "example": "UTC"
+          }
+        }
+      },
+      "RateConfiguration": {
+        "type": "object",
+        "required": [
+          "hourlyRate",
+          "currency",
+          "selected"
+        ],
+        "properties": {
+          "hourlyRate": {
+            "type": "number",
+            "description": "Default hourly rate"
+          },
+          "dailyRate": {
+            "type": "number"
+          },
+          "projectRate": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string",
+            "example": "USDC"
+          },
+          "minimumBudget": {
+            "type": "number"
+          },
+          "selected": {
+            "type": "string",
+            "enum": [
+              "hourly",
+              "daily",
+              "project"
+            ],
+            "description": "Selected rate mode"
+          }
+        }
+      },
+      "NotificationSettings": {
+        "type": "object",
+        "description": "Notification preferences for email and push notifications",
+        "required": [
+          "email",
+          "push",
+          "frequency"
+        ],
+        "properties": {
+          "email": {
+            "type": "object",
+            "description": "Email notification preferences",
+            "required": [
+              "newCampaignMatches",
+              "applicationStatusUpdates",
+              "paymentReceived",
+              "messagesFromClients",
+              "communityInteractions",
+              "platformAnnouncements"
+            ],
+            "properties": {
+              "newCampaignMatches": {
+                "type": "boolean",
+                "description": "Notify when new campaigns match your profile",
+                "example": true
+              },
+              "applicationStatusUpdates": {
+                "type": "boolean",
+                "description": "Notify when application status changes",
+                "example": false
+              },
+              "paymentReceived": {
+                "type": "boolean",
+                "description": "Notify when payment is received",
+                "example": true
+              },
+              "messagesFromClients": {
+                "type": "boolean",
+                "description": "Notify when receiving messages from project owners",
+                "example": true
+              },
+              "communityInteractions": {
+                "type": "boolean",
+                "description": "Notify about community interactions and mentions",
+                "example": false
+              },
+              "platformAnnouncements": {
+                "type": "boolean",
+                "description": "Notify about platform updates and announcements",
+                "example": false
+              }
+            }
+          },
+          "push": {
+            "type": "object",
+            "description": "Push notification preferences",
+            "required": [
+              "realTimeMessages",
+              "campaignDeadlines",
+              "paymentConfirmations",
+              "milestoneReminders"
+            ],
+            "properties": {
+              "realTimeMessages": {
+                "type": "boolean",
+                "description": "Push notifications for real-time messages",
+                "example": true
+              },
+              "campaignDeadlines": {
+                "type": "boolean",
+                "description": "Push notifications for upcoming campaign deadlines",
+                "example": true
+              },
+              "paymentConfirmations": {
+                "type": "boolean",
+                "description": "Push notifications for payment confirmations",
+                "example": false
+              },
+              "milestoneReminders": {
+                "type": "boolean",
+                "description": "Push notifications for milestone reminders",
+                "example": false
+              }
+            }
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "instant",
+              "daily_digest",
+              "weekly_summary"
+            ],
+            "description": "Notification frequency preference:\n- instant: Receive notifications immediately as they occur\n- daily_digest: Receive a daily summary of notifications\n- weekly_summary: Receive a weekly summary of notifications\n",
+            "example": "instant"
+          }
+        }
+      },
+      "PrivacySettings": {
+        "type": "object",
+        "description": "Privacy settings for profile visibility and information sharing",
+        "required": [
+          "profileVisibility"
+        ],
+        "properties": {
+          "profileVisibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE",
+              "CONNECTIONS_ONLY"
+            ],
+            "description": "Profile visibility level:\n- PUBLIC: Profile visible to everyone\n- PRIVATE: Profile only visible to you\n- CONNECTIONS_ONLY: Profile visible only to connected users\n",
+            "example": "PUBLIC"
+          },
+          "showEarnings": {
+            "type": "boolean",
+            "description": "Display total earnings on public profile",
+            "example": false,
+            "default": false
+          },
+          "showCompletedCampaigns": {
+            "type": "boolean",
+            "description": "Display number of completed campaigns on public profile",
+            "example": true,
+            "default": true
+          },
+          "showSocialAccounts": {
+            "type": "boolean",
+            "description": "Display verified social accounts on public profile",
+            "example": true,
+            "default": true
+          }
+        }
+      },
+      "SecuritySettings": {
+        "type": "object",
+        "description": "**DEPRECATED: Security settings are managed by Privy.**\n\nWallet and security features including 2FA, login alerts, and trusted devices\nare handled by Privy's authentication system.\n",
+        "deprecated": true,
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Information message about Privy management",
+            "example": "Security settings are managed by Privy. Please use Privy dashboard for security configuration."
+          },
+          "twoFactorEnabled": {
+            "type": "boolean",
+            "description": "Two-factor authentication status (managed by Privy)",
+            "deprecated": true
+          },
+          "loginAlerts": {
+            "type": "boolean",
+            "description": "Login alert notifications (managed by Privy)",
+            "deprecated": true
+          },
+          "trustedDevices": {
+            "type": "array",
+            "description": "List of trusted devices (managed by Privy)",
+            "deprecated": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "deviceId": {
+                  "type": "string"
+                },
+                "deviceName": {
+                  "type": "string"
+                },
+                "lastUsed": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      },
+      "DashboardTrending": {
+        "type": "object",
+        "required": [
+          "campaigns"
+        ],
+        "properties": {
+          "campaigns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CampaignListItem"
+            }
+          },
+          "period": {
+            "type": "string",
+            "example": "24h"
+          }
+        }
+      },
+      "DashboardLive": {
+        "type": "object",
+        "required": [
+          "campaigns"
+        ],
+        "properties": {
+          "campaigns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CampaignListItem"
+            }
+          },
+          "activeCount": {
+            "type": "integer"
+          }
+        }
+      },
+      "DashboardActionItems": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "type",
+                "title",
+                "priority"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "APPLICATION_REVIEW",
+                    "DELIVERABLE_SUBMIT",
+                    "PAYMENT_PENDING",
+                    "PROFILE_INCOMPLETE"
+                  ]
+                },
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "priority": {
+                  "type": "string",
+                  "enum": [
+                    "HIGH",
+                    "MEDIUM",
+                    "LOW"
+                  ]
+                },
+                "deadline": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "relatedEntityId": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "FooterAnalytics": {
+        "type": "object",
+        "required": [
+          "totalCampaigns",
+          "activeCampaigns",
+          "totalCreators",
+          "totalValueProcessed"
+        ],
+        "properties": {
+          "totalCampaigns": {
+            "type": "integer",
+            "description": "Total campaigns on platform"
+          },
+          "activeCampaigns": {
+            "type": "integer",
+            "description": "Currently active campaigns"
+          },
+          "totalCreators": {
+            "type": "integer",
+            "description": "Total registered creators"
+          },
+          "totalValueProcessed": {
+            "type": "number",
+            "description": "Total value processed in USD"
+          }
+        }
+      },
+      "FilterOptions": {
+        "type": "object",
+        "required": [
+          "focusAreas",
+          "deliverableTypes",
+          "durations",
+          "stages",
+          "budgetRanges"
+        ],
+        "properties": {
+          "focusAreas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "$ref": "#/components/schemas/FocusArea"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "deliverableTypes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "$ref": "#/components/schemas/DeliverableType"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "durations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "$ref": "#/components/schemas/CampaignDuration"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "$ref": "#/components/schemas/CampaignStage"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "budgetRanges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "min": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "DemoRequestPayload": {
+        "type": "object",
+        "required": [
+          "email",
+          "userType",
+          "socialHandle",
+          "socialPlatform"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255,
+            "description": "User's email address",
+            "example": "user@example.com"
+          },
+          "userType": {
+            "type": "string",
+            "enum": [
+              "creator",
+              "project_owner"
+            ],
+            "description": "Type of user joining the platform",
+            "example": "creator"
+          },
+          "socialHandle": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "description": "User's Telegram or X (Twitter) handle (without @ symbol)",
+            "example": "john_doe_crypto"
+          },
+          "socialPlatform": {
+            "type": "string",
+            "enum": [
+              "telegram",
+              "x"
+            ],
+            "description": "Platform type for the social handle",
+            "example": "telegram"
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Optional tracking parameter for marketing attribution",
+            "example": "homepage"
+          },
+          "timestamp": {
+            "type": "number",
+            "format": "int64",
+            "description": "Client-side timestamp of request submission (Unix timestamp in milliseconds)",
+            "example": 1704643237714
+          }
+        }
+      },
+      "DemoRequestResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "message"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "requestId",
+              "email",
+              "userType",
+              "status",
+              "createdAt"
+            ],
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "description": "Unique request identifier",
+                "example": "req_1a2b3c4d5e6f"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "user@example.com"
+              },
+              "userType": {
+                "type": "string",
+                "enum": [
+                  "creator",
+                  "project_owner"
+                ],
+                "example": "creator"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "contacted",
+                  "completed",
+                  "rejected"
+                ],
+                "example": "pending"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2026-01-07T15:40:37.714Z"
+              }
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Demo request submitted successfully. We will contact you soon."
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ValidationErrorDetails": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "example": "email"
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid email format"
+          }
+        }
+      },
+      "DemoRequestError": {
+        "type": "object",
+        "required": [
+          "success",
+          "error"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "VALIDATION_ERROR",
+                  "MISSING_REQUIRED_FIELD",
+                  "INVALID_USER_TYPE",
+                  "INVALID_SOCIAL_PLATFORM",
+                  "DUPLICATE_REQUEST",
+                  "RATE_LIMIT_EXCEEDED",
+                  "INTERNAL_ERROR"
+                ],
+                "example": "VALIDATION_ERROR"
+              },
+              "message": {
+                "type": "string",
+                "example": "Invalid request data"
+              },
+              "details": {
+                "oneOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ValidationErrorDetails"
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "existingRequestId": {
+                        "type": "string",
+                        "example": "req_9x8y7z6w5v4u"
+                      },
+                      "submittedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-01-05T10:30:00.000Z"
+                      },
+                      "retryAfter": {
+                        "type": "integer",
+                        "description": "Retry after seconds",
+                        "example": 3600
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProjectDashboardStats": {
+        "type": "object",
+        "required": [
+          "activeCampaigns",
+          "pendingApplications",
+          "budgetAvailable",
+          "deliverablesSubmitted"
+        ],
+        "properties": {
+          "activeCampaigns": {
+            "type": "integer",
+            "example": 3
+          },
+          "pendingApplications": {
+            "type": "integer",
+            "example": 12
+          },
+          "budgetAvailable": {
+            "type": "number",
+            "example": 25000
+          },
+          "deliverablesSubmitted": {
+            "type": "integer",
+            "example": 3
+          },
+          "totalCampaigns": {
+            "type": "integer",
+            "example": 28
+          },
+          "totalSpent": {
+            "type": "number",
+            "example": 245000
+          },
+          "reputationScore": {
+            "type": "integer",
+            "example": 780
+          },
+          "reputationTier": {
+            "type": "string",
+            "example": "B"
+          },
+          "avgCampaignCVPI": {
+            "type": "number",
+            "example": 95.3
+          }
+        }
+      },
+      "CampaignCreateRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "vertical",
+          "description",
+          "durationType",
+          "startDate",
+          "creatorBudget",
+          "numberOfCreators",
+          "paymentStructure",
+          "deliverableTypes",
+          "contentGuidelines",
+          "approvalMethod",
+          "kpiTargets"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "DeFi Protocol Launch"
+          },
+          "vertical": {
+            "$ref": "#/components/schemas/FocusArea"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "example": "string"
+          },
+          "durationType": {
+            "$ref": "#/components/schemas/DurationType"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2025-12-16"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2025-12-16"
+          },
+          "coverImage": {
+            "type": "string",
+            "format": "uri",
+            "example": "string"
+          },
+          "creatorBudget": {
+            "type": "number",
+            "minimum": 500,
+            "example": 10000
+          },
+          "numberOfCreators": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "example": 3
+          },
+          "paymentStructure": {
+            "$ref": "#/components/schemas/PaymentStructure"
+          },
+          "payWithAW3Token": {
+            "type": "boolean",
+            "default": false
+          },
+          "deliverableTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeliverableType"
+            }
+          },
+          "contentGuidelines": {
+            "type": "string",
+            "maxLength": 2000,
+            "example": "string"
+          },
+          "approvalMethod": {
+            "$ref": "#/components/schemas/ApprovalMethod"
+          },
+          "kpiTargets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "metricType",
+                "targetValue",
+                "weight"
+              ],
+              "properties": {
+                "metricType": {
+                  "type": "string",
+                  "enum": [
+                    "EngagementRate",
+                    "Impressions",
+                    "ClickThroughRate",
+                    "Conversions",
+                    "FollowerGrowth",
+                    "Custom"
+                  ],
+                  "example": "EngagementRate"
+                },
+                "targetValue": {
+                  "type": "number",
+                  "example": 0
+                },
+                "weight": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100,
+                  "example": 100
+                },
+                "verificationMethod": {
+                  "type": "string",
+                  "enum": [
+                    "Oracle",
+                    "Manual",
+                    "Hybrid"
+                  ],
+                  "default": "Oracle",
+                  "example": "Oracle"
+                }
+              }
+            }
+          },
+          "previousExperience": {
+            "type": "string",
+            "description": "Required previous experience level for creators",
+            "enum": [
+              "Any",
+              "Beginner",
+              "Intermediate",
+              "Advanced",
+              "Expert"
+            ],
+            "example": "Any"
+          },
+          "location": {
+            "type": "array",
+            "description": "Geographic focus - target regions/countries for the campaign",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "North America",
+              "Europe",
+              "Asia"
+            ]
+          },
+          "socials": {
+            "type": "array",
+            "description": "Required social platforms for creators",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Twitter",
+                "Discord",
+                "Telegram",
+                "YouTube",
+                "Instagram",
+                "TikTok"
+              ]
+            },
+            "example": [
+              "Twitter",
+              "Discord"
+            ]
+          },
+          "minReputationScore": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "default": 600
+          },
+          "cvpiRange": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "number",
+                "default": 0,
+                "example": 0
+              },
+              "max": {
+                "type": "number",
+                "default": 150,
+                "example": 150
+              }
+            }
+          }
+        }
+      },
+      "CampaignTransactionResponse": {
+        "type": "object",
+        "required": [
+          "campaignId",
+          "transactionHash",
+          "status"
+        ],
+        "properties": {
+          "campaignId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "transactionHash": {
+            "type": "string",
+            "example": "0x8a2f3d1c..."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "CONFIRMED",
+              "FAILED"
+            ]
+          },
+          "estimatedConfirmationTime": {
+            "type": "integer"
+          },
+          "totalLocked": {
+            "type": "number"
+          }
+        }
+      },
+      "ProjectCampaignListItem": {
+        "type": "object",
+        "required": [
+          "campaignId",
+          "name",
+          "vertical",
+          "status",
+          "budgetTotal",
+          "budgetRemaining",
+          "applicationCount",
+          "approvedCount",
+          "deliverableCount",
+          "daysRemaining",
+          "progressStage",
+          "createdAt"
+        ],
+        "properties": {
+          "campaignId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "name": {
+            "type": "string",
+            "example": "DeFi Protocol Launch"
+          },
+          "vertical": {
+            "$ref": "#/components/schemas/FocusArea"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CampaignStatus"
+          },
+          "budgetTotal": {
+            "type": "number",
+            "description": "Total campaign budget in USD",
+            "example": 10000
+          },
+          "budgetRemaining": {
+            "type": "number",
+            "description": "Remaining budget in USD",
+            "example": 8000
+          },
+          "applicationCount": {
+            "type": "integer",
+            "description": "Total number of applications received",
+            "example": 45
+          },
+          "approvedCount": {
+            "type": "integer",
+            "description": "Number of approved applications",
+            "example": 3
+          },
+          "deliverableCount": {
+            "type": "integer",
+            "description": "Number of deliverables submitted",
+            "example": 0
+          },
+          "daysRemaining": {
+            "type": "integer",
+            "description": "Days remaining until campaign end date",
+            "nullable": true,
+            "example": 12
+          },
+          "cvpiScore": {
+            "type": "number",
+            "description": "Average CVPI score of approved creators",
+            "nullable": true,
+            "example": 750
+          },
+          "cvpiClassification": {
+            "type": "string",
+            "description": "CVPI classification category",
+            "enum": [
+              "Excellent",
+              "Good",
+              "Average",
+              "Below Average",
+              "Poor"
+            ],
+            "nullable": true,
+            "example": "Excellent"
+          },
+          "progressStage": {
+            "type": "string",
+            "description": "Current stage of the campaign workflow",
+            "enum": [
+              "Applications",
+              "InProgress",
+              "Verification",
+              "Completed"
+            ],
+            "example": "Applications"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-12-16T03:47:18.818Z"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Campaign end date",
+            "nullable": true,
+            "example": "2025-12-16T03:47:18.818Z"
+          }
+        }
+      },
+      "CampaignMetrics": {
+        "type": "object",
+        "required": [
+          "budgetStatus",
+          "applications",
+          "progress",
+          "cvpiScore"
+        ],
+        "properties": {
+          "budgetStatus": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "number"
+              },
+              "remaining": {
+                "type": "number"
+              },
+              "spent": {
+                "type": "number"
+              },
+              "percentageUsed": {
+                "type": "number"
+              }
+            }
+          },
+          "applications": {
+            "type": "object",
+            "properties": {
+              "received": {
+                "type": "integer"
+              },
+              "approved": {
+                "type": "integer"
+              },
+              "pendingReview": {
+                "type": "integer"
+              },
+              "rejected": {
+                "type": "integer"
+              }
+            }
+          },
+          "progress": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "$ref": "#/components/schemas/CampaignStatus"
+              },
+              "daysElapsed": {
+                "type": "integer"
+              },
+              "daysTotal": {
+                "type": "integer"
+              },
+              "percentageComplete": {
+                "type": "number"
+              },
+              "endDate": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "cvpiScore": {
+            "type": "object",
+            "properties": {
+              "current": {
+                "type": "number"
+              },
+              "classification": {
+                "type": "string"
+              },
+              "trend": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      },
+      "ProjectApplication": {
+        "type": "object",
+        "required": [
+          "applicationId",
+          "campaignId",
+          "creatorId",
+          "status"
+        ],
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "campaignId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "campaignName": {
+            "type": "string"
+          },
+          "creatorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "creatorAvatar": {
+            "type": "string",
+            "format": "uri"
+          },
+          "reputation": {
+            "type": "integer"
+          },
+          "reputationTier": {
+            "type": "string"
+          },
+          "avgCVPI": {
+            "type": "number"
+          },
+          "cvpiClassification": {
+            "type": "string"
+          },
+          "socialStats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "platform": {
+                  "$ref": "#/components/schemas/SocialPlatform"
+                },
+                "followers": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "campaignsCompleted": {
+            "type": "integer"
+          },
+          "successRate": {
+            "type": "number"
+          },
+          "applicationMessage": {
+            "type": "string"
+          },
+          "portfolioLinks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "appliedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ApplicationStatus"
+          },
+          "matchScore": {
+            "type": "number",
+            "nullable": true
+          }
+        }
+      },
+      "BatchApprovalRequest": {
+        "type": "object",
+        "required": [
+          "applicationIds"
+        ],
+        "properties": {
+          "applicationIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "minItems": 1
+          }
+        }
+      },
+      "BatchApprovalResponse": {
+        "type": "object",
+        "required": [
+          "successCount",
+          "failedIds"
+        ],
+        "properties": {
+          "successCount": {
+            "type": "integer"
+          },
+          "failedIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "applicationId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CampaignAnalytics": {
+        "type": "object",
+        "required": [
+          "performanceSummary",
+          "cvpiBreakdown",
+          "audienceReach",
+          "costEfficiency"
+        ],
+        "properties": {
+          "performanceSummary": {
+            "type": "object",
+            "description": "Campaign performance overview",
+            "properties": {
+              "totalSpend": {
+                "type": "number",
+                "description": "Total budget spent + fees",
+                "example": 10762
+              },
+              "budgetTotal": {
+                "type": "number",
+                "description": "Original campaign budget",
+                "example": 10000
+              },
+              "fees": {
+                "type": "number",
+                "description": "Platform fees",
+                "example": 762
+              },
+              "averageCvpi": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "type": "number",
+                    "example": 85.3
+                  },
+                  "classification": {
+                    "type": "string",
+                    "enum": [
+                      "Excellent",
+                      "Good",
+                      "Average",
+                      "Below Average",
+                      "Poor"
+                    ],
+                    "example": "Good"
+                  },
+                  "benchmark": {
+                    "type": "string",
+                    "description": "Comparison to vertical average",
+                    "example": "Your vertical avg is 76.8"
+                  },
+                  "performanceNote": {
+                    "type": "string",
+                    "example": "Performance: 8.7% better"
+                  }
+                }
+              },
+              "kpiSuccessRate": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "description": "Total KPI targets",
+                    "example": 3
+                  },
+                  "exceeded": {
+                    "type": "integer",
+                    "description": "Number of targets exceeded",
+                    "example": 2
+                  },
+                  "met": {
+                    "type": "integer",
+                    "description": "Number of targets met",
+                    "example": 1
+                  },
+                  "missed": {
+                    "type": "integer",
+                    "description": "Number of targets missed",
+                    "example": 0
+                  },
+                  "summary": {
+                    "type": "string",
+                    "example": "2 of 3 deliverables exceeded targets, 1 met targets"
+                  }
+                }
+              },
+              "creatorPerformance": {
+                "type": "object",
+                "properties": {
+                  "reputation": {
+                    "type": "integer",
+                    "example": 928
+                  },
+                  "reputationTier": {
+                    "type": "string",
+                    "example": "A Tier"
+                  },
+                  "avgConversionTime": {
+                    "type": "integer",
+                    "description": "Average time to complete deliverable in days",
+                    "example": 23
+                  },
+                  "onTimeDelivery": {
+                    "type": "string",
+                    "example": "All deliverables submitted on time"
+                  }
+                }
+              }
+            }
+          },
+          "cvpiBreakdown": {
+            "type": "object",
+            "description": "CVPI breakdown by creators",
+            "properties": {
+              "chart": {
+                "type": "array",
+                "description": "Bar chart data for CVPI scores by creator",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "creatorName": {
+                      "type": "string",
+                      "example": "Creator1"
+                    },
+                    "cvpiScore": {
+                      "type": "number",
+                      "example": 92.5
+                    },
+                    "classification": {
+                      "type": "string",
+                      "enum": [
+                        "Excellent",
+                        "Good",
+                        "Average"
+                      ],
+                      "example": "Excellent"
+                    },
+                    "percentageOfMaxCvpi": {
+                      "type": "number",
+                      "description": "Percentage relative to max CVPI (100)",
+                      "example": 92.5
+                    }
+                  }
+                }
+              },
+              "timeline": {
+                "type": "array",
+                "description": "Line chart data showing CVPI progression over time",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "format": "date",
+                      "example": "2025-12-01"
+                    },
+                    "excellent": {
+                      "type": "number",
+                      "description": "Percentage of excellent performers",
+                      "example": 75
+                    },
+                    "good": {
+                      "type": "number",
+                      "description": "Percentage of good performers",
+                      "example": 25
+                    }
+                  }
+                }
+              },
+              "summary": {
+                "type": "object",
+                "properties": {
+                  "excellentCount": {
+                    "type": "integer",
+                    "example": 8
+                  },
+                  "goodCount": {
+                    "type": "integer",
+                    "example": 4
+                  },
+                  "averageCount": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          },
+          "audienceReach": {
+            "type": "object",
+            "description": "Audience reach and engagement analysis",
+            "properties": {
+              "platformBreakdown": {
+                "type": "array",
+                "description": "Reach by social platform",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "Twitter",
+                        "Instagram",
+                        "Discord",
+                        "YouTube",
+                        "Telegram",
+                        "TikTok",
+                        "Other"
+                      ],
+                      "example": "Twitter"
+                    },
+                    "percentage": {
+                      "type": "number",
+                      "description": "Percentage of total reach",
+                      "example": 85
+                    },
+                    "impressions": {
+                      "type": "integer",
+                      "example": 785000
+                    },
+                    "color": {
+                      "type": "string",
+                      "description": "Color for chart visualization",
+                      "example": "green"
+                    }
+                  }
+                }
+              },
+              "totalMetrics": {
+                "type": "object",
+                "properties": {
+                  "totalImpressions": {
+                    "type": "integer",
+                    "example": 750000
+                  },
+                  "totalEngagements": {
+                    "type": "integer",
+                    "example": 58300
+                  },
+                  "uniqueReach": {
+                    "type": "integer",
+                    "example": 612000
+                  },
+                  "avgEngagementRate": {
+                    "type": "number",
+                    "example": 7.9
+                  }
+                }
+              }
+            }
+          },
+          "costEfficiency": {
+            "type": "object",
+            "description": "Cost efficiency analysis with benchmarks",
+            "properties": {
+              "metrics": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "metricName": {
+                      "type": "string",
+                      "enum": [
+                        "Cost per 1K Impressions",
+                        "Cost per Engagement",
+                        "Cost per Conversions"
+                      ],
+                      "example": "Cost per 1K Impressions"
+                    },
+                    "yourCampaign": {
+                      "type": "number",
+                      "example": 14.65
+                    },
+                    "verticalAvg": {
+                      "type": "number",
+                      "example": 18.2
+                    },
+                    "platformAvg": {
+                      "type": "number",
+                      "example": 21.3
+                    },
+                    "performance": {
+                      "type": "string",
+                      "description": "Performance comparison",
+                      "example": "24% better"
+                    },
+                    "performancePercentage": {
+                      "type": "number",
+                      "description": "Numeric performance difference",
+                      "example": 24
+                    }
+                  }
+                }
+              },
+              "summary": {
+                "type": "object",
+                "properties": {
+                  "overallEfficiency": {
+                    "type": "string",
+                    "example": "25% more cost-efficient than platform average"
+                  },
+                  "bestMetric": {
+                    "type": "string",
+                    "example": "Cost per Engagement"
+                  },
+                  "worstMetric": {
+                    "type": "string",
+                    "example": "Cost per Conversions"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CampaignFinancials": {
+        "type": "object",
+        "required": [
+          "analyticsOverview",
+          "walletPortal",
+          "budgetAllocation",
+          "paymentHistory",
+          "feeBreakdown",
+          "invoice"
+        ],
+        "properties": {
+          "analyticsOverview": {
+            "type": "object",
+            "description": "Campaign performance summary for financials tab",
+            "properties": {
+              "smartContractAddress": {
+                "type": "string",
+                "description": "Smart contract address managing escrow",
+                "example": "0x1234...5678"
+              },
+              "chain": {
+                "type": "string",
+                "example": "CHAIN: BASE Mainnet"
+              },
+              "viewOnBlockchain": {
+                "type": "string",
+                "format": "uri",
+                "description": "Link to view contract on blockchain explorer",
+                "example": "https://basescan.org/address/0x1234...5678"
+              },
+              "totalImpressions": {
+                "type": "integer",
+                "description": "Total campaign impressions",
+                "example": 755000
+              },
+              "totalEngagements": {
+                "type": "integer",
+                "description": "Total campaign engagements",
+                "example": 58300
+              },
+              "uniqueReach": {
+                "type": "integer",
+                "description": "Unique reach count",
+                "example": 612000
+              },
+              "avgEngagementRate": {
+                "type": "number",
+                "description": "Average engagement rate percentage",
+                "example": 7.9
+              }
+            }
+          },
+          "walletPortal": {
+            "type": "object",
+            "description": "Budget allocation breakdown with percentages",
+            "properties": {
+              "creatorPayments": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "example": 10000
+                  },
+                  "percentage": {
+                    "type": "number",
+                    "example": 80
+                  }
+                }
+              },
+              "serviceFees": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "example": 768
+                  },
+                  "percentage": {
+                    "type": "number",
+                    "example": 6.1
+                  },
+                  "note": {
+                    "type": "string",
+                    "example": "8%"
+                  }
+                }
+              },
+              "oracleFees": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "example": 70
+                  },
+                  "percentage": {
+                    "type": "number",
+                    "example": 0.6
+                  },
+                  "note": {
+                    "type": "string",
+                    "example": "~0%"
+                  }
+                }
+              },
+              "escrowBuffer": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "example": 1084
+                  },
+                  "percentage": {
+                    "type": "number",
+                    "example": 8.7
+                  },
+                  "note": {
+                    "type": "string",
+                    "example": "10%"
+                  }
+                }
+              },
+              "unused": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "example": 500
+                  },
+                  "percentage": {
+                    "type": "number",
+                    "example": 4
+                  },
+                  "note": {
+                    "type": "string",
+                    "example": "Not refundable"
+                  }
+                }
+              },
+              "total": {
+                "type": "number",
+                "description": "Total budget allocation",
+                "example": 12422
+              }
+            }
+          },
+          "budgetAllocation": {
+            "type": "object",
+            "description": "Legacy budget allocation (kept for backward compatibility)",
+            "properties": {
+              "creatorPayments": {
+                "type": "number",
+                "example": 10000
+              },
+              "serviceFees": {
+                "type": "number",
+                "example": 768
+              },
+              "oracleFees": {
+                "type": "number",
+                "example": 70
+              },
+              "escrowBuffer": {
+                "type": "number",
+                "example": 1084
+              },
+              "unused": {
+                "type": "number",
+                "example": 500
+              }
+            }
+          },
+          "paymentHistory": {
+            "type": "object",
+            "properties": {
+              "transactions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "format": "date",
+                      "example": "Nov 23"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "Creator Payment",
+                        "Service Fee",
+                        "Oracle Fee",
+                        "Escrow Lock",
+                        "Buffer Refund"
+                      ],
+                      "example": "Creator Payment"
+                    },
+                    "recipient": {
+                      "type": "string",
+                      "example": "Creator A"
+                    },
+                    "amount": {
+                      "type": "number",
+                      "example": 3333
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "Released",
+                        "Distributed",
+                        "Paid",
+                        "Pending",
+                        "Failed"
+                      ],
+                      "example": "Released"
+                    },
+                    "transactionHash": {
+                      "type": "string",
+                      "description": "Blockchain transaction hash",
+                      "example": "tx hash"
+                    }
+                  }
+                }
+              },
+              "pagination": {
+                "type": "object",
+                "properties": {
+                  "currentPage": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "totalPages": {
+                    "type": "integer",
+                    "example": 50
+                  },
+                  "itemsPerPage": {
+                    "type": "integer",
+                    "example": 10
+                  }
+                }
+              }
+            }
+          },
+          "feeBreakdown": {
+            "type": "object",
+            "description": "Detailed fee calculation breakdown",
+            "properties": {
+              "yourEffectiveFeeRate": {
+                "type": "object",
+                "properties": {
+                  "baseRate": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "number",
+                        "example": 8
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "budget tier: $5k-$20k"
+                      }
+                    }
+                  },
+                  "complexityMultiplier": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "number",
+                        "example": 1.5
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "high complexity"
+                      }
+                    }
+                  },
+                  "reputationDiscount": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "number",
+                        "example": -20
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "Tier B"
+                      }
+                    }
+                  },
+                  "tokenPaymentDiscount": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "number",
+                        "example": -20
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "AW3 tokens used"
+                      }
+                    }
+                  },
+                  "finalRate": {
+                    "type": "number",
+                    "description": "Final effective fee rate percentage",
+                    "example": 7.68
+                  }
+                }
+              },
+              "savings": {
+                "type": "object",
+                "properties": {
+                  "amountSaved": {
+                    "type": "number",
+                    "example": 432
+                  },
+                  "percentageSaved": {
+                    "type": "number",
+                    "example": 36
+                  },
+                  "comparisonNote": {
+                    "type": "string",
+                    "example": "You saved $432 (36%) compared to standard rate thanks to your reputation and token payment"
+                  }
+                }
+              },
+              "detailedCalculation": {
+                "type": "object",
+                "properties": {
+                  "link": {
+                    "type": "string",
+                    "example": "View detailed fee calculation"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "For promotion and token payment eligibility"
+                  }
+                }
+              }
+            }
+          },
+          "invoice": {
+            "type": "object",
+            "description": "Invoice generation and download information",
+            "properties": {
+              "downloadUrl": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL to download invoice",
+                "example": "/api/invoices/campaign/{id}/download"
+              },
+              "invoiceDetails": {
+                "type": "object",
+                "properties": {
+                  "campaignName": {
+                    "type": "string",
+                    "example": "DeFi Protocol Launch"
+                  },
+                  "dateRange": {
+                    "type": "string",
+                    "example": "Start Date — End Date"
+                  },
+                  "budgetAndFees": {
+                    "type": "string",
+                    "example": "Budget and transaction fees"
+                  },
+                  "paymentMethod": {
+                    "type": "string",
+                    "example": "Crypto (AW3 Token)"
+                  },
+                  "transactionHashes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "List of related transaction hashes"
+                  },
+                  "downloadTaxDocuments": {
+                    "type": "string",
+                    "example": "Download tax documents"
+                  },
+                  "taxNote": {
+                    "type": "string",
+                    "example": "Consult your tax advisor for guidance on reporting"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CreatorDiscoveryResult": {
+        "type": "object",
+        "required": [
+          "creatorId",
+          "displayName",
+          "reputation",
+          "avgCVPI"
+        ],
+        "properties": {
+          "creatorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string",
+            "format": "uri"
+          },
+          "reputation": {
+            "type": "integer"
+          },
+          "reputationTier": {
+            "type": "string"
+          },
+          "avgCVPI": {
+            "type": "number"
+          },
+          "cvpiClassification": {
+            "type": "string"
+          },
+          "socialStats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "platform": {
+                  "$ref": "#/components/schemas/SocialPlatform"
+                },
+                "followers": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "campaignsCompleted": {
+            "type": "integer"
+          },
+          "successRate": {
+            "type": "number"
+          },
+          "verticalExperience": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FocusArea"
+            }
+          },
+          "estimatedCVPI": {
+            "type": "number"
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AdminUserStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "suspended",
+          "banned"
+        ]
+      },
+      "DisputeStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "inArbitration",
+          "escalated",
+          "resolved"
+        ]
+      },
+      "DisputeIssueType": {
+        "type": "string",
+        "enum": [
+          "payment",
+          "deliverable",
+          "kpiVerification",
+          "other"
+        ]
+      },
+      "DisputeResolutionOutcome": {
+        "type": "string",
+        "enum": [
+          "favorCreator",
+          "favorProject",
+          "split"
+        ]
+      },
+      "AdminForceAction": {
+        "type": "string",
+        "enum": [
+          "forceApproveApplication",
+          "forceVerifyDeliverable",
+          "forceCancelCampaign",
+          "refundEscrow",
+          "releasePayment"
+        ]
+      },
+      "AdminDashboardStats": {
+        "type": "object",
+        "properties": {
+          "totalCreators": {
+            "type": "integer"
+          },
+          "totalProjects": {
+            "type": "integer"
+          },
+          "totalCampaigns": {
+            "type": "integer"
+          },
+          "activeDisputes": {
+            "type": "integer"
+          },
+          "platformRevenue30d": {
+            "type": "number",
+            "format": "double"
+          },
+          "treasuryBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "systemStatus": {
+            "$ref": "#/components/schemas/AdminSystemHealth"
+          },
+          "recentActivity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAuditLogEntry"
+            }
+          }
+        }
+      },
+      "AdminCreatorSummary": {
+        "type": "object",
+        "properties": {
+          "creatorId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "walletAddress": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AdminUserStatus"
+          },
+          "reputationScore": {
+            "type": "integer"
+          },
+          "reputationTier": {
+            "$ref": "#/components/schemas/ReputationTier"
+          },
+          "totalCampaigns": {
+            "type": "integer"
+          },
+          "totalEarnings": {
+            "type": "number",
+            "format": "double"
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AdminCreatorDetail": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/AdminCreatorSummary"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/CreatorProfile"
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "campaignsCompleted": {
+                "type": "integer"
+              },
+              "campaignsActive": {
+                "type": "integer"
+              },
+              "avgCVPI": {
+                "type": "number",
+                "format": "double"
+              },
+              "earningsTotal": {
+                "type": "number",
+                "format": "double"
+              },
+              "earnings30d": {
+                "type": "number",
+                "format": "double"
+              }
+            }
+          },
+          "recentActivity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAuditLogEntry"
+            }
+          }
+        }
+      },
+      "AdminProjectSummary": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "walletAddress": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AdminUserStatus"
+          },
+          "reputationScore": {
+            "type": "integer"
+          },
+          "reputationTier": {
+            "$ref": "#/components/schemas/ReputationTier"
+          },
+          "totalCampaigns": {
+            "type": "integer"
+          },
+          "totalBudgetSpent": {
+            "type": "number",
+            "format": "double"
+          },
+          "avgCampaignCVPI": {
+            "type": "number",
+            "format": "double"
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AdminProjectDetail": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/AdminProjectSummary"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "bio": {
+                "type": "string"
+              },
+              "website": {
+                "type": "string"
+              },
+              "socialLinks": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SocialLink"
+                }
+              },
+              "verificationStatus": {
+                "type": "string"
+              }
+            }
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "campaignsCreated": {
+                "type": "integer"
+              },
+              "budgetSpent": {
+                "type": "number",
+                "format": "double"
+              },
+              "successRate": {
+                "type": "number",
+                "format": "double"
+              },
+              "creatorsEngaged": {
+                "type": "integer"
+              }
+            }
+          },
+          "recentActivity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAuditLogEntry"
+            }
+          }
+        }
+      },
+      "AdminCampaignSummary": {
+        "type": "object",
+        "properties": {
+          "campaignId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CampaignStatus"
+          },
+          "budget": {
+            "type": "number",
+            "format": "double"
+          },
+          "applications": {
+            "type": "integer"
+          },
+          "approvedApplications": {
+            "type": "integer"
+          },
+          "cvpi": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "flagged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AdminDisputeSummary": {
+        "type": "object",
+        "properties": {
+          "disputeId": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DisputeStatus"
+          },
+          "issueType": {
+            "$ref": "#/components/schemas/DisputeIssueType"
+          },
+          "campaignId": {
+            "type": "string"
+          },
+          "campaignName": {
+            "type": "string"
+          },
+          "initiator": {
+            "type": "string"
+          },
+          "respondent": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "filedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "escalated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AdminDisputeDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AdminDisputeSummary"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "validatorsAssigned": {
+                "type": "integer"
+              },
+              "votes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "validator": {
+                      "type": "string"
+                    },
+                    "stakingTier": {
+                      "type": "string"
+                    },
+                    "vote": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              },
+              "evidence": {
+                "type": "object",
+                "properties": {
+                  "project": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "creator": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "activity": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AdminAuditLogEntry"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AdminSystemHealth": {
+        "type": "object",
+        "properties": {
+          "overallStatus": {
+            "type": "string"
+          },
+          "uptime30d": {
+            "type": "number",
+            "format": "double"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminServiceHealth"
+            }
+          }
+        }
+      },
+      "AdminServiceHealth": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "degraded",
+              "down"
+            ]
+          },
+          "latencyMs": {
+            "type": "number",
+            "format": "double"
+          },
+          "lastCheck": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AdminAuditLogEntry": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "adminUser": {
+            "type": "string"
+          },
+          "actionType": {
+            "type": "string"
+          },
+          "entityType": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "ipAddress": {
+            "type": "string"
+          }
+        }
+      },
+      "AdminFeeTier": {
+        "type": "object",
+        "properties": {
+          "range": {
+            "type": "string"
+          },
+          "baseRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "AdminFeeMultipliers": {
+        "type": "object",
+        "properties": {
+          "complexity": {
+            "type": "object",
+            "properties": {
+              "low": {
+                "type": "number",
+                "format": "double"
+              },
+              "medium": {
+                "type": "number",
+                "format": "double"
+              },
+              "high": {
+                "type": "number",
+                "format": "double"
+              }
+            }
+          },
+          "reputationDiscounts": {
+            "type": "object",
+            "properties": {
+              "sTier": {
+                "type": "number",
+                "format": "double"
+              },
+              "aTier": {
+                "type": "number",
+                "format": "double"
+              },
+              "bTier": {
+                "type": "number",
+                "format": "double"
+              },
+              "cTier": {
+                "type": "number",
+                "format": "double"
+              }
+            }
+          },
+          "tokenDiscount": {
+            "type": "number",
+            "format": "double"
+          },
+          "oracleFee": {
+            "type": "object",
+            "properties": {
+              "base": {
+                "type": "number",
+                "format": "double"
+              },
+              "perAdditionalKPI": {
+                "type": "number",
+                "format": "double"
+              }
+            }
+          }
+        }
+      },
+      "AdminDistributionRule": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "percentage": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount30d": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          },
+          "lastChanged": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "AdminRevenueSummary": {
+        "type": "object",
+        "properties": {
+          "totalRevenue30d": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalCampaigns": {
+            "type": "integer"
+          },
+          "avgRevenuePerCampaign": {
+            "type": "number",
+            "format": "double"
+          },
+          "treasuryBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "distribution": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminDistributionRule"
+            }
+          }
+        }
+      },
+      "AdminCVPIAlgorithm": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "effectiveDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "formula": {
+            "type": "string"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "weight": {
+                  "type": "number",
+                  "format": "double"
+                },
+                "metrics": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AdminCVPIBenchmark": {
+        "type": "object",
+        "properties": {
+          "vertical": {
+            "type": "string"
+          },
+          "medianCVPI": {
+            "type": "number",
+            "format": "double"
+          },
+          "averageCVPI": {
+            "type": "number",
+            "format": "double"
+          },
+          "campaigns": {
+            "type": "integer"
+          },
+          "trend": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AdminCVPIAnalytics": {
+        "type": "object",
+        "properties": {
+          "totalCampaigns": {
+            "type": "integer"
+          },
+          "completed": {
+            "type": "integer"
+          },
+          "cvpiCalculated": {
+            "type": "integer"
+          },
+          "mean": {
+            "type": "number",
+            "format": "double"
+          },
+          "median": {
+            "type": "number",
+            "format": "double"
+          },
+          "stdDev": {
+            "type": "number",
+            "format": "double"
+          },
+          "p10": {
+            "type": "number",
+            "format": "double"
+          },
+          "p25": {
+            "type": "number",
+            "format": "double"
+          },
+          "p75": {
+            "type": "number",
+            "format": "double"
+          },
+          "p90": {
+            "type": "number",
+            "format": "double"
+          },
+          "distribution": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "range": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                },
+                "percentage": {
+                  "type": "number",
+                  "format": "double"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AdminSearchResult": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "creator",
+              "project",
+              "campaign",
+              "dispute"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "relevance": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AdminStatusUpdateRequest": {
+        "type": "object",
+        "required": [
+          "status",
+          "reason"
+        ],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/AdminUserStatus"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "AdminReputationAdjustRequest": {
+        "type": "object",
+        "required": [
+          "delta",
+          "reason"
+        ],
+        "properties": {
+          "delta": {
+            "type": "integer"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "effectiveAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AdminForceActionRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "reason"
+        ],
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/AdminForceAction"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "AdminDisputeResolutionRequest": {
+        "type": "object",
+        "required": [
+          "outcome",
+          "reason"
+        ],
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/DisputeResolutionOutcome"
+          },
+          "allocation": {
+            "type": "object",
+            "properties": {
+              "favorCreatorAmount": {
+                "type": "number",
+                "format": "double"
+              },
+              "favorProjectAmount": {
+                "type": "number",
+                "format": "double"
+              }
+            }
+          },
+          "reason": {
+            "type": "string"
+          },
+          "notifyParties": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AdminPauseRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "require2FA": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "AdminResumeRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "require2FA": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/demo-requests": {
+      "post": {
+        "tags": [
+          "Request Demo"
+        ],
+        "summary": "Submit demo request",
+        "description": "Submit a demo request from the website request form. This endpoint handles form submissions\nfrom https://www.allweb3.io/request where users can join as creators or project owners.\n\n**Validation:**\n- Email must be valid format (RFC 5322)\n- User type must be \"creator\" or \"project_owner\"\n- Social handle must be 3-50 characters (alphanumeric, underscores, hyphens)\n- Social platform must be \"telegram\" or \"x\"\n\n**Rate Limiting:**\n- Per IP: 10 requests/hour, 50 requests/day\n- Per Email: 3 requests/day\n\n**Duplicate Detection:**\n- Prevents duplicate submissions from same email within 30 days\n\n**Data Storage:**\n- All submissions are stored in demo-requests.txt file\n",
+        "operationId": "submitDemoRequest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoRequestPayload"
+              },
+              "examples": {
+                "creator_request": {
+                  "value": {
+                    "email": "creator@example.com",
+                    "userType": "creator",
+                    "socialHandle": "john_doe_crypto",
+                    "socialPlatform": "telegram",
+                    "source": "homepage",
+                    "timestamp": 1704643237714
+                  }
+                },
+                "project_owner_request": {
+                  "value": {
+                    "email": "project@example.com",
+                    "userType": "project_owner",
+                    "socialHandle": "project_handle",
+                    "socialPlatform": "x",
+                    "timestamp": 1704643237714
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Demo request submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRequestResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "requestId": "req_1a2b3c4d5e6f",
+                    "email": "user@example.com",
+                    "userType": "creator",
+                    "status": "pending",
+                    "createdAt": "2026-01-07T15:40:37.714Z"
+                  },
+                  "message": "Demo request submitted successfully. We will contact you soon.",
+                  "timestamp": "2026-01-07T15:40:37.714Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRequestError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Invalid request data",
+                    "details": [
+                      {
+                        "field": "email",
+                        "message": "Invalid email format"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Duplicate request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRequestError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "DUPLICATE_REQUEST",
+                    "message": "A demo request with this email already exists",
+                    "details": {
+                      "existingRequestId": "req_9x8y7z6w5v4u",
+                      "submittedAt": "2026-01-05T10:30:00.000Z"
+                    }
+                  },
+                  "timestamp": "2026-01-07T15:40:37.714Z"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRequestError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "RATE_LIMIT_EXCEEDED",
+                    "message": "Too many requests. Please try again later.",
+                    "details": {
+                      "retryAfter": 3600
+                    }
+                  },
+                  "timestamp": "2026-01-07T15:40:37.714Z"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRequestError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "An unexpected error occurred. Please try again later."
+                  },
+                  "timestamp": "2026-01-07T15:40:37.714Z"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/creator/profile/me": {
+      "get": {
+        "tags": [
+          "Creator Profile"
+        ],
+        "summary": "Get creator profile",
+        "description": "Retrieve authenticated creator's profile with focusArea instead of category",
+        "operationId": "getCreatorProfile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CreatorProfile"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Creator Profile"
+        ],
+        "summary": "Update creator profile",
+        "description": "Update profile information (no socialLinks field)",
+        "operationId": "updateCreatorProfile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatorProfileUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CreatorProfile"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/creator/profile/social-verification": {
+      "post": {
+        "tags": [
+          "Creator Profile"
+        ],
+        "summary": "Initiate social account verification (independent service)",
+        "description": "**CRITICAL ARCHITECTURE NOTE: This is a COMPLETELY SEPARATE service from Privy authentication**\n\n**Purpose:**\nVerify ownership of social media accounts (Twitter, Discord, Telegram) and fetch metrics (followers, engagement rates) for campaign matching and CVPI calculation.\n\n**Architecture:**\n1. **Independent Backend Service**: Social verification is handled by a dedicated microservice, NOT Privy\n2. **Own OAuth Implementation**: This service implements its own OAuth 2.0 flows to each platform\n3. **Direct Platform API Calls**: Fetches metrics directly from Twitter API, Discord API, Telegram API\n4. **No Privy Dependency**: Does NOT use Privy for social OAuth or token management\n\n**Verification Flow:**\n1. User (already logged into AW3 via Privy) requests social verification\n2. Social verification service generates platform-specific OAuth URL\n3. User redirects to Twitter/Discord/Telegram for authorization\n4. Platform redirects back to social verification service callback\n5. Service exchanges authorization code for access token (own OAuth implementation)\n6. Service fetches social metrics (followers, engagement) from platform API\n7. Service stores verification data (hashed user ID, public metrics only)\n8. Tokens discarded after initial fetch (MVP: one-time verification, no continuous monitoring)\n\n**What Gets Stored:**\n- Platform (Twitter/Discord/Telegram)\n- Handle/username\n- Follower count (at verification time)\n- Engagement rate (calculated from public posts)\n- Verification timestamp\n\n**What Does NOT Get Stored:**\n- OAuth access/refresh tokens (discarded after fetch in MVP)\n- Private messages or DMs\n- Email, phone, or personal information\n\n**Example Scenario:**\n- User logs into AW3 with Gmail (via Privy) ← Platform authentication\n- User then verifies Twitter account (via independent social verification service) ← Social metrics\n- These are TWO COMPLETELY SEPARATE authentication flows\n\n**Related Endpoints:**\nFor the full OAuth flow, see:\n- `GET /social/{platform}/authorize-url` - Get OAuth URL for platform\n- `GET /social/callback` - Handle OAuth callback from platform\n",
+        "operationId": "verifySocialAccount",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "platform",
+                  "handle"
+                ],
+                "properties": {
+                  "platform": {
+                    "$ref": "#/components/schemas/SocialPlatform"
+                  },
+                  "handle": {
+                    "type": "string",
+                    "example": "@cryptoinfluencer",
+                    "description": "Social media handle to verify"
+                  },
+                  "verificationCode": {
+                    "type": "string",
+                    "description": "Optional verification code (if using code-based verification instead of OAuth)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Social verification initiated successfully via the independent social verification backend service.\n\nThe service will:\n1. Perform OAuth with Twitter/Discord/Telegram (own implementation, NOT Privy)\n2. Fetch metrics (followers, engagement) directly from platform APIs\n3. Store verification data (no long-term token storage in MVP)\n\nThis flow is completely decoupled from Privy authentication.\n"
+          }
+        }
+      }
+    },
+    "/social/{platform}/authorize-url": {
+      "get": {
+        "tags": [
+          "Creator Profile"
+        ],
+        "summary": "Get OAuth authorization URL for social platform",
+        "description": "**Independent Social Verification Service**\n\nGenerate platform-specific OAuth authorization URL for social account verification.\nThis is handled by the independent social verification service, NOT Privy.\n\n**Architecture:**\n- Independent backend service generates OAuth URL with PKCE\n- Stores state parameter and code verifier in session/Redis\n- Returns URL for frontend to redirect user to platform\n\n**Flow:**\n1. Frontend calls this endpoint\n2. Backend generates OAuth URL with proper scopes (read profile, followers)\n3. Frontend redirects user to returned URL\n4. User authorizes on Twitter/Discord/Telegram\n5. Platform redirects to `/social/callback`\n\n**Supported Platforms:**\n- twitter: Twitter/X OAuth 2.0\n- discord: Discord OAuth 2.0\n- telegram: Telegram Bot OAuth\n\n**Important:**\nThis OAuth flow is completely separate from Privy. If a user logged into AW3 using Twitter via Privy, they still need to go through this separate OAuth flow to verify their Twitter account for social metrics.\n",
+        "operationId": "getSocialAuthUrl",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "twitter",
+                "discord",
+                "telegram",
+                "instagram",
+                "youtube",
+                "tiktok"
+              ]
+            },
+            "example": "twitter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth authorization URL generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "authUrl": {
+                              "type": "string",
+                              "example": "https://twitter.com/i/oauth2/authorize?response_type=code&client_id=xxx&redirect_uri=https://api.aw3.io/social/callback&scope=tweet.read%20users.read%20offline.access&state=xxx&code_challenge=xxx&code_challenge_method=S256",
+                              "description": "OAuth authorization URL - frontend should redirect user to this URL"
+                            },
+                            "state": {
+                              "type": "string",
+                              "description": "CSRF protection state parameter (stored server-side)"
+                            },
+                            "platform": {
+                              "type": "string",
+                              "example": "twitter"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or unsupported platform"
+          },
+          "401": {
+            "description": "User not authenticated to AW3 platform"
+          }
+        }
+      }
+    },
+    "/social/callback": {
+      "get": {
+        "tags": [
+          "Creator Profile"
+        ],
+        "summary": "Handle OAuth callback from social platform",
+        "description": "**Independent Social Verification Service - OAuth Callback Handler**\n\nThis endpoint receives the OAuth callback from Twitter/Discord/Telegram after user authorization.\nHandled entirely by the independent social verification service, NOT Privy.\n\n**Backend Processing:**\n1. Validates state parameter (CSRF protection)\n2. Exchanges authorization code for access token (own OAuth implementation)\n3. Fetches user profile and metrics from platform API\n4. Stores verification data (hashed user ID, public metrics)\n5. Discards tokens (MVP: one-time verification only)\n6. Redirects user back to AW3 frontend with success/error\n\n**Twitter API Calls (Example):**\n- POST https://api.twitter.com/2/oauth2/token (exchange code for token)\n- GET https://api.twitter.com/2/users/me?user.fields=public_metrics (fetch profile and followers)\n\n**Data Fetched:**\n- Twitter: followers_count, following_count, tweet_count, engagement rate\n- Discord: username, discriminator, guilds owned, total members\n- Telegram: username, channel subscribers\n\n**Data Storage:**\n- Platform and handle (for display)\n- Follower count (at verification time)\n- Verification timestamp\n- Hashed platform user ID (privacy protection)\n- NO OAuth tokens stored in MVP (one-time verification)\n\n**Security:**\n- State parameter validation prevents CSRF attacks\n- PKCE code verifier prevents authorization code interception\n- All token exchange happens server-side only\n- Tokens never exposed to frontend\n",
+        "operationId": "handleSocialCallback",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Authorization code from OAuth provider"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "State parameter for CSRF protection"
+          },
+          {
+            "name": "error",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Error code if user denied authorization"
+          },
+          {
+            "name": "error_description",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Human-readable error description"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to AW3 frontend with verification result\n\nSuccess: /creator/profile?social_verification=success&platform=twitter\nError: /creator/profile?social_verification=error&platform=twitter&error=access_denied\n"
+          },
+          "400": {
+            "description": "Invalid state parameter or authorization code"
+          },
+          "500": {
+            "description": "Failed to fetch metrics from platform API"
+          }
+        }
+      }
+    },
+    "/social/status": {
+      "get": {
+        "tags": [
+          "Creator Profile"
+        ],
+        "summary": "Get social verification status for all platforms",
+        "description": "Retrieve verification status and metrics for all social platforms linked to the authenticated creator.\n\n**Returns:**\n- List of verified social accounts\n- Current follower counts (as of last verification)\n- Verification timestamps\n- Data freshness indicators\n\n**Note:** In MVP, data is from one-time verification. Shows \"X days old\" indicator.\n",
+        "operationId": "getSocialStatus",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Social verification status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "socialAccounts": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "platform": {
+                                    "type": "string",
+                                    "enum": [
+                                      "twitter",
+                                      "discord",
+                                      "telegram",
+                                      "instagram",
+                                      "youtube"
+                                    ]
+                                  },
+                                  "handle": {
+                                    "type": "string",
+                                    "example": "@cryptoinfluencer"
+                                  },
+                                  "verified": {
+                                    "type": "boolean",
+                                    "example": true
+                                  },
+                                  "followersCount": {
+                                    "type": "integer",
+                                    "example": 125000
+                                  },
+                                  "engagementRate": {
+                                    "type": "number",
+                                    "format": "float",
+                                    "example": 8.5,
+                                    "description": "Percentage engagement rate"
+                                  },
+                                  "verifiedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "example": "2025-12-15T08:30:00Z"
+                                  },
+                                  "daysOld": {
+                                    "type": "integer",
+                                    "example": 5,
+                                    "description": "Days since verification (data freshness indicator)"
+                                  },
+                                  "requiresReverification": {
+                                    "type": "boolean",
+                                    "example": false,
+                                    "description": "True if data is older than 90 days"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social/{platform}/disconnect": {
+      "delete": {
+        "tags": [
+          "Creator Profile"
+        ],
+        "summary": "Disconnect and remove social account verification",
+        "description": "Remove social account verification data for the specified platform.\n\n**What gets deleted:**\n- Verification record\n- Stored metrics (followers, engagement)\n- Any associated data\n\n**GDPR/Privacy Compliance:**\nThis endpoint supports user's right to deletion.\n",
+        "operationId": "disconnectSocialAccount",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "twitter",
+                "discord",
+                "telegram",
+                "instagram",
+                "youtube",
+                "tiktok"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Social account disconnected successfully"
+          },
+          "404": {
+            "description": "No verification found for this platform"
+          }
+        }
+      }
+    },
+    "/creator/campaigns": {
+      "get": {
+        "tags": [
+          "Creator Campaigns"
+        ],
+        "summary": "Browse active campaigns with UI-aligned filtering",
+        "description": "Returns campaigns with only essential overview fields. Detailed data available in campaign detail endpoint.\n\n**Important Note:**\nThis endpoint does NOT include matchRate in the response. The server cannot calculate match rate because it requires comparison between the user's profile and each campaign's criteria. Match rate must be calculated on the frontend based on:\n- User's profile data (reputation, follower count, verified accounts, etc.)\n- Campaign criteria (requirements, target audience, qualifications)\n\n**UI Alignment:**\nAll filter parameters support multi-select to match UI behavior. Frontend should send multiple values as comma-separated or repeated query parameters.\n\n**Example Query:**\n```\nGET /creator/campaigns?keyword=NFT&vertical=2&vertical=3&deliverables=1&deliverables=2&duration=1&duration=2&stage=2&page=0&size=20\n```\n\n**Parameter Mappings:**\n- vertical: 1=DeFi, 2=NFT, 3=Gaming, 4=Infrastructure, 5=L2, 6=DAO, 7=Metaverse, 8=Trading, 9=Other\n- deliverables: 1=Twitter Posts, 2=Videos, 3=Articles, 4=AMAs, 5=Discord Management, 6=Community Giveaways, 7=Instagram Post, 8=TikTok\n- duration: 1=Less Than 1 Week, 2=1-2 Weeks, 3=2-4 Weeks, 4=1-3 Months, 5=3+ Months\n- stage: 1=Ideation, 2=Live Configuration, 3=Notification Preferences, 4=Privacy Controls, 5=Wallet & Payout, 6=Security\n",
+        "operationId": "browseCreatorCampaigns",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "Keyword search against campaign title and description.\nUI: Search input field at top of campaigns list.\n",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "NFT marketing"
+            }
+          },
+          {
+            "name": "vertical",
+            "in": "query",
+            "description": "Filter by vertical/focus area (multi-select).\nUI: \"Vertical\" filter section with checkboxes.\nValues: 1=DeFi, 2=NFT, 3=Gaming, 4=Infrastructure, 5=L2, 6=DAO, 7=Metaverse, 8=Trading, 9=Other\n",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/FocusArea"
+              }
+            },
+            "style": "form",
+            "explode": true,
+            "example": [
+              2,
+              3
+            ]
+          },
+          {
+            "name": "deliverables",
+            "in": "query",
+            "description": "Filter by deliverable types (multi-select).\nUI: \"Deliverables\" filter section with checkboxes.\nValues: 1=Twitter Posts, 2=Videos, 3=Articles, 4=AMAs, 5=Discord Management, 6=Community Giveaways, 7=Instagram Post, 8=TikTok\n",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/DeliverableType"
+              }
+            },
+            "style": "form",
+            "explode": true,
+            "example": [
+              1,
+              2
+            ]
+          },
+          {
+            "name": "duration",
+            "in": "query",
+            "description": "Filter by campaign duration (multi-select).\nUI: \"Duration\" filter section with checkboxes.\nValues: 1=Less Than 1 Week, 2=1-2 Weeks, 3=2-4 Weeks, 4=1-3 Months, 5=3+ Months\n",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/CampaignDuration"
+              }
+            },
+            "style": "form",
+            "explode": true,
+            "example": [
+              1,
+              2
+            ]
+          },
+          {
+            "name": "stage",
+            "in": "query",
+            "description": "Filter by campaign stage (multi-select).\nUI: \"Stage\" filter section with checkboxes.\nValues: 1=Ideation, 2=Live Configuration, 3=Notification Preferences, 4=Privacy Controls, 5=Wallet & Payout, 6=Security\n",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/CampaignStage"
+              }
+            },
+            "style": "form",
+            "explode": true,
+            "example": [
+              2,
+              3
+            ]
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination (zero-indexed)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Number of items per page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 100
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campaigns list with simplified fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "campaigns": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/CampaignListItem"
+                              }
+                            },
+                            "pagination": {
+                              "$ref": "#/components/schemas/Pagination"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/creator/campaigns/{id}": {
+      "get": {
+        "tags": [
+          "Creator Campaigns"
+        ],
+        "summary": "Get campaign details with full information",
+        "description": "Returns complete campaign information including project info, objective, and payment terms",
+        "operationId": "getCreatorCampaignDetails",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campaign details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CampaignDetail"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/creator/applications": {
+      "get": {
+        "tags": [
+          "Creator Applications"
+        ],
+        "summary": "List own applications",
+        "operationId": "listCreatorApplications",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Applications list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Application"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Creator Applications"
+        ],
+        "summary": "Submit application",
+        "operationId": "submitApplication",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/Application"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/creator/applications/{id}": {
+      "get": {
+        "tags": [
+          "Creator Applications"
+        ]
+      }
+    }
+  }
+}

@@ -5,7 +5,7 @@
       "src": "server.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["swagger.yaml", "demo-requests.txt"]
+        "includeFiles": ["swagger.json", "swagger.yaml", "demo-requests.txt"]
       }
     }
   ],
