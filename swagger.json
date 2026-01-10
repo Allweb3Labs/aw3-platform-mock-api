@@ -1679,18 +1679,6 @@
             ],
             "description": "Platform type for the social handle",
             "example": "telegram"
-          },
-          "source": {
-            "type": "string",
-            "maxLength": 100,
-            "description": "Optional tracking parameter for marketing attribution",
-            "example": "homepage"
-          },
-          "timestamp": {
-            "type": "number",
-            "format": "int64",
-            "description": "Client-side timestamp of request submission (Unix timestamp in milliseconds)",
-            "example": 1704643237714
           }
         }
       },
@@ -4077,9 +4065,7 @@
                     "email": "creator@example.com",
                     "userType": "creator",
                     "socialHandle": "john_doe_crypto",
-                    "socialPlatform": "telegram",
-                    "source": "homepage",
-                    "timestamp": 1704643237714
+                    "socialPlatform": "telegram"
                   }
                 },
                 "project_owner_request": {
@@ -4087,8 +4073,7 @@
                     "email": "project@example.com",
                     "userType": "project_owner",
                     "socialHandle": "project_handle",
-                    "socialPlatform": "x",
-                    "timestamp": 1704643237714
+                    "socialPlatform": "x"
                   }
                 }
               }

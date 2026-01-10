@@ -1318,16 +1318,6 @@ components:
           enum: [telegram, x]
           description: Platform type for the social handle
           example: "telegram"
-        source:
-          type: string
-          maxLength: 100
-          description: Optional tracking parameter for marketing attribution
-          example: "homepage"
-        timestamp:
-          type: number
-          format: int64
-          description: Client-side timestamp of request submission (Unix timestamp in milliseconds)
-          example: 1704643237714
 
     DemoRequestResponse:
       type: object
@@ -2983,15 +2973,12 @@ paths:
                   userType: "creator"
                   socialHandle: "john_doe_crypto"
                   socialPlatform: "telegram"
-                  source: "homepage"
-                  timestamp: 1704643237714
               project_owner_request:
                 value:
                   email: "project@example.com"
                   userType: "project_owner"
                   socialHandle: "project_handle"
                   socialPlatform: "x"
-                  timestamp: 1704643237714
       responses:
         '201':
           description: Demo request submitted successfully
