@@ -16,12 +16,33 @@ app.use(express.json());
 // Load Swagger document with error handling
 let swaggerDocument;
 try {
-  const swaggerPath = path.join(__dirname, 'swagger.yaml');
+  // Try multiple paths for Vercel compatibility
+  let swaggerPath = path.join(__dirname, 'swagger.yaml');
+  
+  // Check if file exists, if not try alternative paths
+  const fs = require('fs');
+  if (!fs.existsSync(swaggerPath)) {
+    // Try current working directory
+    swaggerPath = path.join(process.cwd(), 'swagger.yaml');
+    if (!fs.existsSync(swaggerPath)) {
+      // Try relative path
+      swaggerPath = './swagger.yaml';
+    }
+  }
+  
   console.log('Loading swagger.yaml from:', swaggerPath);
   console.log('Current working directory:', process.cwd());
   console.log('__dirname:', __dirname);
+  console.log('File exists:', fs.existsSync(swaggerPath));
+  
   swaggerDocument = YAML.load(swaggerPath);
-  console.log('Swagger document loaded successfully');
+  
+  if (swaggerDocument && swaggerDocument.paths && Object.keys(swaggerDocument.paths).length > 0) {
+    console.log('Swagger document loaded successfully');
+    console.log('Number of paths:', Object.keys(swaggerDocument.paths).length);
+  } else {
+    throw new Error('Swagger document is empty or invalid');
+  }
 } catch (error) {
   console.error('Failed to load swagger.yaml:', error);
   console.error('Error stack:', error.stack);
@@ -30,7 +51,7 @@ try {
     openapi: '3.0.0',
     info: { title: 'AW3 Platform Mock API', version: '1.0.0' },
     servers: [
-      { url: 'https://allweb3-mock-api.vercel.app/api', description: 'Production' }
+      { url: 'https://swagger-mock-api-five.vercel.app', description: 'Production' }
     ],
     paths: {}
   };
