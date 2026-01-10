@@ -1,334 +1,274 @@
-# Deployment Success Summary
+# 🎉 Request Demo API 部署成功！
 
-**Date:** December 16, 2025, 15:06 UTC+8  
-**Status:** Successfully Deployed
+## ✅ 部署完成
 
----
-
-## Git Push Status
-
-**Branch:** main  
-**Remote:** https://github.com/Allweb3Labs/aw3-platform-mock-api.git
-
-### Latest Commits Pushed
-
-```
-5a92c75 Update API endpoints: notification settings, privacy, security, and campaign filtering
-788e47b Add deployment scripts and documentation files
-f866476 Update creator settings and localization endpoints
-```
-
-**Push Status:** Success  
-**Working Tree:** Clean (no uncommitted changes)  
-**Branch Status:** Up to date with origin/main
+**部署时间**: 2026-01-10 16:53:17  
+**部署方式**: Vercel API + CLI  
+**部署状态**: ✅ 成功
 
 ---
 
-## Render Deployment
+## 🌐 生产环境 URL
 
-**Service URL:** https://aw3-platform-mock-api.onrender.com  
-**Documentation:** https://aw3-platform-mock-api.onrender.com/docs  
-**Deployment Status:** Live and Operational
+### 主要 URL
+- **生产环境**: https://swagger-mock-api-five.vercel.app
+- **备用 URL**: https://swagger-mock-o121ok21z-allweb3.vercel.app
 
-### Auto-Deploy Configuration
-
-Render is configured to auto-deploy from the GitHub repository:
-- Auto-deploy enabled from `main` branch
-- Build Command: `npm install`
-- Start Command: `npm start`
-- Health Check: `/health`
+### API 文档
+- **Swagger UI**: https://swagger-mock-api-five.vercel.app/docs
+- **OpenAPI JSON**: https://swagger-mock-api-five.vercel.app/swagger.json
+- **OpenAPI YAML**: https://swagger-mock-api-five.vercel.app/swagger.yaml
 
 ---
 
-## Changes Deployed
+## 📋 API 端点
 
-### 1. Notification Settings Endpoints
-
-**GET/POST /creator/settings/notification**
-
-Enhanced with comprehensive documentation including:
-- **Email Notifications** (6 types):
-  - New campaign matches
-  - Application status updates
-  - Payment received
-  - Messages from clients
-  - Community interactions
-  - Platform announcements
-
-- **Push Notifications** (4 types):
-  - Real-time messages
-  - Campaign deadlines
-  - Payment confirmations
-  - Milestone reminders
-
-- **Frequency Options**:
-  - instant
-  - daily_digest
-  - weekly_summary
-
-**Features:**
-- Detailed field descriptions with examples
-- Complete request/response examples
-- UI implementation guidance
-- Validation specifications
-
-### 2. Privacy Settings Endpoints
-
-**GET/POST /creator/settings/privacy**
-
-Enhanced with comprehensive documentation including:
-- **Profile Visibility Options**:
-  - PUBLIC: Visible to everyone
-  - PRIVATE: Only visible to user
-  - CONNECTIONS_ONLY: Visible to connections only
-
-- **Information Sharing Controls**:
-  - showEarnings: Display earnings on profile
-  - showCompletedCampaigns: Display campaign count
-  - showSocialAccounts: Display verified social accounts
-
-**Features:**
-- Complete field descriptions
-- Default value specifications
-- Request/response examples
-- Validation notes
-
-### 3. Security Settings (Privy-Managed)
-
-**GET/POST /creator/settings/security** (DEPRECATED)
-
-Updated to indicate:
-- Security and wallet settings are managed by Privy
-- Endpoints marked as deprecated
-- Returns informational message directing to Privy Dashboard
-- Added Privy documentation links:
-  - Dashboard: https://dashboard.privy.io
-  - Security Docs: https://docs.privy.io/security/overview
-
-### 4. Campaign Filtering Enhancements
-
-**GET /creator/campaigns**
-
-Already implemented from previous updates:
-- keyword (string): Keyword search
-- vertical (array): Multiple focus areas
-- deliverables (array): Multiple deliverable types
-- duration (array): Multiple duration options
-- stage (array): Multiple campaign stages
-- Removed: minBudget, maxBudget, complexity
-- matchRate calculation moved to frontend
-
----
-
-## Documentation Files
-
-### New Documentation Files Created
-
-1. **CREATOR_SETTINGS_ENDPOINTS.md**
-   - Complete API documentation for all settings endpoints
-   - Request/response examples
-   - React UI implementation examples
-   - Backend implementation guide with SQL schemas
-   - Validation examples
-   - Testing checklist
-
-2. **DEPLOYMENT_SUCCESS.md** (this file)
-   - Deployment summary and verification
-   - Changes deployed
-   - Testing verification
-   - Production URLs
-
-### Existing Documentation Files
-
-- API_UI_COMPARISON.md
-- ARCHITECTURE_DIAGRAM.md
-- CHANGES_SUMMARY.md
-- CREATOR_CAMPAIGNS_API_UPDATES.md
-- DEVELOPER_QUICK_REFERENCE.md
-- FOCUSAREA_REMOVAL.md
-- LOCALIZATION_AND_RATE_SETTINGS.md
-- MANUAL_DEPLOYMENT_GUIDE.md
-- MATCH_RATE_CALCULATION.md
-- MISSING_API_ANALYSIS.md
-- PROJECT_PORTAL_ADDITIONS.yaml
-- PROJECT_PORTAL_UPDATE_SUMMARY.md
-- DEPLOYMENT_INSTRUCTIONS.md
-
----
-
-## Verification
-
-### 1. Git Repository Verification
-
-**GitHub URL:** https://github.com/Allweb3Labs/aw3-platform-mock-api
-
-Status:
-- All changes pushed successfully
-- Latest commit visible on GitHub
-- No pending local changes
-- Branch synchronized with remote
-
-### 2. Render Deployment Verification
-
-**Production URL:** https://aw3-platform-mock-api.onrender.com/docs
-
-Status:
-- Swagger UI loads successfully
-- All endpoints visible in documentation
-- Notification settings endpoints present
-- Privacy settings endpoints present
-- Security settings endpoints marked as deprecated
-- Project Campaigns endpoints with updated filtering
-
-### 3. API Accessibility
-
-All production endpoints are accessible at:
-- **Swagger UI:** https://aw3-platform-mock-api.onrender.com/docs
-- **OpenAPI YAML:** https://aw3-platform-mock-api.onrender.com/swagger.yaml
-- **OpenAPI JSON:** https://aw3-platform-mock-api.onrender.com/swagger.json
-- **API Base:** https://aw3-platform-mock-api.onrender.com/api
-- **Health Check:** https://aw3-platform-mock-api.onrender.com/health
-
----
-
-## Testing Endpoints
-
-### Test Notification Settings (Example)
-
-**GET Request:**
+### 健康检查
 ```bash
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://aw3-platform-mock-api.onrender.com/api/creator/settings/notification
+GET https://swagger-mock-api-five.vercel.app/health
 ```
 
-**Expected Response:**
+**响应示例**:
 ```json
 {
-  "success": true,
-  "data": {
-    "email": {
-      "newCampaignMatches": true,
-      "applicationStatusUpdates": false,
-      "paymentReceived": true,
-      "messagesFromClients": true,
-      "communityInteractions": false,
-      "platformAnnouncements": false
-    },
-    "push": {
-      "realTimeMessages": true,
-      "campaignDeadlines": true,
-      "paymentConfirmations": false,
-      "milestoneReminders": false
-    },
-    "frequency": "instant"
-  }
+  "status": "ok",
+  "timestamp": "2026-01-10T08:53:17.000Z"
 }
 ```
 
-### Test Privacy Settings (Example)
-
-**GET Request:**
+### Request Demo API
 ```bash
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://aw3-platform-mock-api.onrender.com/api/creator/settings/privacy
+POST https://swagger-mock-api-five.vercel.app/api/v1/demo-requests
+Content-Type: application/json
 ```
 
-**Expected Response:**
+**请求体**:
 ```json
 {
-  "success": true,
-  "data": {
-    "profileVisibility": "PUBLIC",
-    "showEarnings": false,
-    "showCompletedCampaigns": true,
-    "showSocialAccounts": true
-  }
+  "email": "user@example.com",
+  "userType": "creator",
+  "socialHandle": "username",
+  "socialPlatform": "telegram",
+  "source": "homepage"
 }
 ```
 
-### Test Campaign Filtering (Example)
-
-**GET Request:**
-```bash
-curl "https://aw3-platform-mock-api.onrender.com/api/creator/campaigns?keyword=DeFi&vertical=1&vertical=2&deliverables=1&deliverables=2&duration=1&stage=2"
-```
-
-**Expected Response:**
+**响应示例（成功）**:
 ```json
 {
   "success": true,
   "data": {
-    "campaigns": [...],
-    "pagination": {
-      "page": 0,
-      "size": 20,
-      "totalPages": 1,
-      "totalElements": 5
+    "requestId": "req_abc123def456",
+    "email": "user@example.com",
+    "userType": "creator",
+    "status": "pending",
+    "createdAt": "2026-01-10T08:53:17.000Z"
+  },
+  "message": "Demo request submitted successfully. We will contact you soon.",
+  "timestamp": "2026-01-10T08:53:17.000Z"
+}
+```
+
+**字段说明**:
+- `email` (必填): 用户邮箱
+- `userType` (必填): `"creator"` 或 `"project_owner"`
+- `socialHandle` (必填): 社交媒体账号（3-50 字符）
+- `socialPlatform` (必填): `"telegram"` 或 `"x"`
+- `source` (可选): 来源标识（最多 100 字符）
+
+---
+
+## 🧪 测试命令
+
+### 使用 curl (Linux/Mac)
+```bash
+# 健康检查
+curl https://swagger-mock-api-five.vercel.app/health
+
+# Request Demo
+curl -X POST https://swagger-mock-api-five.vercel.app/api/v1/demo-requests \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "userType": "creator",
+    "socialHandle": "test_handle",
+    "socialPlatform": "telegram",
+    "source": "homepage"
+  }'
+```
+
+### 使用 PowerShell (Windows)
+```powershell
+# 健康检查
+Invoke-RestMethod -Uri "https://swagger-mock-api-five.vercel.app/health"
+
+# Request Demo
+$body = @{
+    email = "test@example.com"
+    userType = "creator"
+    socialHandle = "test_handle"
+    socialPlatform = "telegram"
+    source = "homepage"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "https://swagger-mock-api-five.vercel.app/api/v1/demo-requests" `
+  -Method POST `
+  -ContentType "application/json" `
+  -Body $body
+```
+
+### 使用 JavaScript (Fetch)
+```javascript
+// Request Demo
+fetch('https://swagger-mock-api-five.vercel.app/api/v1/demo-requests', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    email: 'user@example.com',
+    userType: 'creator',
+    socialHandle: 'username',
+    socialPlatform: 'telegram',
+    source: 'homepage'
+  })
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));
+```
+
+---
+
+## 📊 Vercel Dashboard
+
+访问以下 URL 管理你的部署：
+
+- **项目主页**: https://vercel.com/allweb3/swagger-mock-api
+- **部署历史**: https://vercel.com/allweb3/swagger-mock-api/deployments
+- **项目设置**: https://vercel.com/allweb3/swagger-mock-api/settings
+- **Analytics**: https://vercel.com/allweb3/swagger-mock-api/analytics
+
+---
+
+## ⚙️ 部署配置
+
+### vercel.json
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
     }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
   }
 }
 ```
 
----
-
-## Next Steps
-
-### For Frontend Team
-
-1. **Update API Integration**
-   - Use new notification settings endpoint structure
-   - Implement privacy settings UI with new options
-   - Use campaign filtering with array parameters
-   - Direct security settings to Privy integration
-
-2. **UI Components**
-   - Reference CREATOR_SETTINGS_ENDPOINTS.md for React examples
-   - Implement notification toggle switches
-   - Add privacy visibility selector
-   - Update campaign filter dropdowns for multi-select
-
-3. **Testing**
-   - Test all new endpoint parameters
-   - Verify array parameter handling
-   - Test notification settings persistence
-   - Validate privacy settings options
-
-### For Backend Team
-
-1. **Mock Data**
-   - All endpoints return mock data currently
-   - Ready for real database integration
-   - Schemas defined in documentation
-
-2. **Database Implementation**
-   - SQL schemas provided in CREATOR_SETTINGS_ENDPOINTS.md
-   - Implement notification settings storage
-   - Implement privacy settings storage
-   - Campaign filtering logic with array support
-
-3. **Privy Integration**
-   - Security settings fully managed by Privy
-   - No backend changes needed for security
-   - Wallet management delegated to Privy
+### package.json
+- Node.js: >= 18.0.0
+- 依赖: express, cors, swagger-ui-express, yamljs, uuid
 
 ---
 
-## Summary
+## 🔄 自动部署
 
-All API endpoint updates have been successfully:
-1. Committed to Git repository
-2. Pushed to GitHub (https://github.com/Allweb3Labs/aw3-platform-mock-api)
-3. Auto-deployed to Render (https://aw3-platform-mock-api.onrender.com)
-4. Verified and accessible in production
+### GitHub 集成
+每次推送代码到 `main` 分支，Vercel 会自动部署新版本：
 
-The API documentation is live and all endpoints are operational. Frontend and backend teams can now proceed with integration and implementation.
+```bash
+git add .
+git commit -m "Update API"
+git push origin main
+```
+
+部署通常在 30-60 秒内完成。
+
+### 手动触发
+在 Vercel Dashboard 中：
+1. 进入项目页面
+2. 点击 "Deployments"
+3. 点击 "Redeploy" 按钮
 
 ---
 
-## Contact & Support
+## ⚠️ 重要提示
 
-**GitHub Repository:** https://github.com/Allweb3Labs/aw3-platform-mock-api  
-**Production API:** https://aw3-platform-mock-api.onrender.com  
-**Documentation:** https://aw3-platform-mock-api.onrender.com/docs
+### 数据持久化
+Vercel 是无服务器环境，`demo-requests.txt` 文件**不会持久化**。
 
-For issues or questions, please refer to the documentation files in the repository.
+**推荐解决方案**:
+1. **Vercel Postgres** (推荐)
+2. **Vercel KV** (Redis)
+3. **外部数据库** (MongoDB Atlas, PlanetScale, Supabase)
+
+### 限制
+- 文件系统只读
+- 每次请求都是独立的无状态环境
+- 函数执行时间限制: 10 秒 (Hobby), 60 秒 (Pro)
+
+---
+
+## 🎯 下一步
+
+1. ✅ ~~部署 API 到 Vercel~~ (已完成)
+2. 📝 添加数据库支持（如需持久化）
+3. 🔐 添加 API 认证（如需保护）
+4. 📊 集成前端应用
+5. 🧪 添加单元测试
+6. 📈 设置监控和日志
+
+---
+
+## 📚 相关文档
+
+- **Vercel 文档**: https://vercel.com/docs
+- **Node.js Runtime**: https://vercel.com/docs/runtimes/node-js
+- **Serverless Functions**: https://vercel.com/docs/functions/serverless-functions
+- **GitHub 仓库**: https://github.com/Allweb3Labs/aw3-platform-mock-api
+
+---
+
+## 🆘 故障排除
+
+### API 无法访问
+1. 等待 1-2 分钟让 DNS 生效
+2. 清除浏览器缓存
+3. 检查 Vercel 部署状态
+4. 查看 Vercel 日志
+
+### Request Demo 失败
+1. 检查请求格式是否正确
+2. 确保所有必填字段都已提供
+3. 验证字段值是否符合要求
+4. 查看错误消息获取详细信息
+
+### 查看日志
+```bash
+npx vercel logs swagger-mock-api-five.vercel.app
+```
+
+---
+
+## 🎊 恭喜！
+
+你的 Request Demo API 已成功部署到 Vercel！
+
+现在你可以：
+- 在浏览器中访问 Swagger UI 查看 API 文档
+- 使用 POST 请求测试 Request Demo 功能
+- 将 API 集成到前端应用中
+
+**部署 URL**: https://swagger-mock-api-five.vercel.app
+
+祝使用愉快！🚀
