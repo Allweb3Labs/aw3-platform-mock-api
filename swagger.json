@@ -14,11 +14,11 @@
   },
   "servers": [
     {
-      "url": "https://aw3-platform-mock-api.onrender.com/api",
-      "description": "Production Mock API Server"
+      "url": "https://swagger-mock-api-five.vercel.app",
+      "description": "Production (Vercel)"
     },
     {
-      "url": "http://localhost:3000/api",
+      "url": "http://localhost:3000",
       "description": "Local Development"
     }
   ],

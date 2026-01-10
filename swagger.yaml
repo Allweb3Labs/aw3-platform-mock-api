@@ -1,4 +1,4 @@
-﻿openapi: 3.0.3
+openapi: 3.0.3
 info:
   title: AW3 Platform API
   description: |
@@ -44,9 +44,9 @@ info:
     name: MIT
 
 servers:
-  - url: https://aw3-platform-mock-api.onrender.com/api
-    description: Production Mock API Server
-  - url: http://localhost:3000/api
+  - url: https://swagger-mock-api-five.vercel.app
+    description: Production (Vercel)
+  - url: http://localhost:3000
     description: Local Development
 
 tags:
