@@ -9,6 +9,10 @@ const fs = require('fs').promises;
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// In-memory store for demo requests (persists during warm function instances)
+// This is necessary because Vercel's serverless environment has a read-only file system
+const inMemoryDemoRequests = [];
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -286,10 +290,13 @@ const generateRequestId = () => {
 
 // File operations
 const readDemoRequests = async () => {
+  let fileRequests = [];
+  
+  // Try to read from file first
   try {
     const content = await fs.readFile(DEMO_REQUESTS_FILE, 'utf-8');
     const lines = content.split('\n').filter(line => line.trim() && !line.startsWith('#'));
-    return lines.map(line => {
+    fileRequests = lines.map(line => {
       try {
         return JSON.parse(line);
       } catch (e) {
@@ -298,26 +305,60 @@ const readDemoRequests = async () => {
     }).filter(item => item !== null);
   } catch (error) {
     // In serverless environments, file system may not be available
-    // Return empty array to allow the API to continue functioning
     if (error.code === 'ENOENT' || error.code === 'EROFS' || error.code === 'EPERM') {
-      return []; // File doesn't exist or read-only filesystem
+      console.log('File read skipped (serverless):', error.code);
+    } else {
+      console.log('File read error (non-critical):', error.message);
     }
-    console.log('File read error (non-critical for mock API):', error.message);
-    return []; // Return empty array to allow API to continue
   }
+  
+  // Combine file requests with in-memory requests
+  // Use a Map to deduplicate by requestId
+  const allRequestsMap = new Map();
+  
+  // Add file requests first
+  for (const req of fileRequests) {
+    if (req.requestId) {
+      allRequestsMap.set(req.requestId, req);
+    }
+  }
+  
+  // Add in-memory requests (will overwrite if duplicate)
+  for (const req of inMemoryDemoRequests) {
+    if (req.requestId) {
+      allRequestsMap.set(req.requestId, req);
+    }
+  }
+  
+  const allRequests = Array.from(allRequestsMap.values());
+  console.log(`Total requests: ${allRequests.length} (${fileRequests.length} from file, ${inMemoryDemoRequests.length} in memory)`);
+  
+  return allRequests;
 };
 
 const writeDemoRequest = async (data) => {
+  // Always store in memory first (works in serverless environment)
+  inMemoryDemoRequests.push(data);
+  console.log('Demo request stored in memory. Total in-memory requests:', inMemoryDemoRequests.length);
+  
+  // Try to also write to file (will fail in serverless, but works locally)
   const line = JSON.stringify(data) + '\n';
   try {
     await fs.appendFile(DEMO_REQUESTS_FILE, line, 'utf-8');
+    console.log('Demo request also written to file');
   } catch (error) {
-    // If file doesn't exist, create it with header
+    // If file doesn't exist, try to create it
     if (error.code === 'ENOENT') {
-      const header = '# Demo Requests Storage\n# Format: One JSON object per line\n# Each line contains: requestId, email, userType, socialHandle, socialPlatform, source, timestamp, ipAddress, createdAt\n\n';
-      await fs.writeFile(DEMO_REQUESTS_FILE, header + line, 'utf-8');
+      try {
+        const header = '# Demo Requests Storage\n# Format: One JSON object per line\n# Each line contains: requestId, email, userType, socialHandle, socialPlatform, source, timestamp, ipAddress, createdAt\n\n';
+        await fs.writeFile(DEMO_REQUESTS_FILE, header + line, 'utf-8');
+      } catch (writeError) {
+        // Ignore - serverless environment, data is in memory
+        console.log('File write skipped (serverless):', writeError.code);
+      }
     } else {
-      throw error;
+      // Read-only filesystem (EROFS) or permission denied (EPERM) - expected in Vercel
+      console.log('File write skipped (serverless):', error.code);
     }
   }
 };
