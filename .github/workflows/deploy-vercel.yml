@@ -9,6 +9,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -17,6 +20,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Convert Swagger YAML to JSON
+        run: node convert-swagger.js
 
       - name: Install Vercel CLI
         run: npm install -g vercel
