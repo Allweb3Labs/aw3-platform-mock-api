@@ -2398,6 +2398,70 @@ app.get('/api/admin/search', (req, res) => {
 });
 
 // ============ REQUEST DEMO API ============
+// GET endpoint to retrieve list of demo requesters
+app.get('/api/v1/demo-requests', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 0;
+    const size = parseInt(req.query.size) || 20;
+    
+    // Validate pagination parameters
+    if (page < 0 || size < 1 || size > 100) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_PARAMETERS',
+          message: 'Invalid pagination parameters'
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    // Read all demo requests
+    const allRequests = await readDemoRequests();
+    
+    // Sort by creation date (newest first)
+    allRequests.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA;
+    });
+    
+    // Calculate pagination
+    const totalElements = allRequests.length;
+    const totalPages = Math.ceil(totalElements / size);
+    const startIndex = page * size;
+    const endIndex = startIndex + size;
+    const paginatedRequests = allRequests.slice(startIndex, endIndex);
+    
+    // Return response
+    return res.status(200).json({
+      success: true,
+      data: {
+        requesters: paginatedRequests,
+        pagination: {
+          currentPage: page,
+          pageSize: size,
+          totalElements,
+          totalPages
+        }
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error retrieving demo requests:', error);
+    return res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'An unexpected error occurred. Please try again later.'
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// POST endpoint to submit demo request
 app.post('/api/v1/demo-requests', async (req, res) => {
   try {
     const { email, userType, socialHandle, socialPlatform, source, timestamp } = req.body;

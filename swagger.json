@@ -1749,6 +1749,117 @@
           }
         }
       },
+      "DemoRequesterItem": {
+        "type": "object",
+        "required": [
+          "requestId",
+          "email",
+          "userType",
+          "socialHandle",
+          "socialPlatform",
+          "createdAt"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "description": "Unique request identifier",
+            "example": "req_1a2b3c4d5e6f"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "creator@example.com"
+          },
+          "userType": {
+            "type": "string",
+            "enum": [
+              "creator",
+              "project_owner"
+            ],
+            "example": "creator"
+          },
+          "socialHandle": {
+            "type": "string",
+            "example": "john_doe_crypto"
+          },
+          "socialPlatform": {
+            "type": "string",
+            "enum": [
+              "telegram",
+              "x"
+            ],
+            "example": "telegram"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "example": "homepage"
+          },
+          "ipAddress": {
+            "type": "string",
+            "example": "203.0.113.45"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-01-07T15:40:37.714Z"
+          }
+        }
+      },
+      "DemoRequestersListResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "timestamp"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "requesters",
+              "pagination"
+            ],
+            "properties": {
+              "requesters": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/DemoRequesterItem"
+                }
+              },
+              "pagination": {
+                "type": "object",
+                "properties": {
+                  "currentPage": {
+                    "type": "integer",
+                    "example": 0
+                  },
+                  "pageSize": {
+                    "type": "integer",
+                    "example": 20
+                  },
+                  "totalElements": {
+                    "type": "integer",
+                    "example": 42
+                  },
+                  "totalPages": {
+                    "type": "integer",
+                    "example": 3
+                  }
+                }
+              }
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ValidationErrorDetails": {
         "type": "object",
         "properties": {
@@ -4045,6 +4156,103 @@
   },
   "paths": {
     "/api/v1/demo-requests": {
+      "get": {
+        "tags": [
+          "Request Demo"
+        ],
+        "summary": "Get list of demo requesters",
+        "description": "Retrieve the list of all demo request submissions. Returns all requesters with their\nsubmission details including email, user type, social handle, and submission timestamp.\n\n**Response includes:**\n- Request ID\n- Email address\n- User type (creator or project_owner)\n- Social handle\n- Social platform (telegram or x)\n- Source (if provided)\n- IP address\n- Submission timestamp\n\n**Pagination:**\n- Results can be paginated using page and size query parameters\n- Default page size is 20\n\n**Sorting:**\n- Results are sorted by creation date (newest first)\n",
+        "operationId": "getDemoRequesters",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number (0-indexed)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Number of items per page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of demo requesters retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRequestersListResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "requesters": [
+                      {
+                        "requestId": "req_1a2b3c4d5e6f",
+                        "email": "creator@example.com",
+                        "userType": "creator",
+                        "socialHandle": "john_doe_crypto",
+                        "socialPlatform": "telegram",
+                        "source": "homepage",
+                        "ipAddress": "203.0.113.45",
+                        "createdAt": "2026-01-07T15:40:37.714Z"
+                      },
+                      {
+                        "requestId": "req_9x8y7z6w5v4u",
+                        "email": "project@example.com",
+                        "userType": "project_owner",
+                        "socialHandle": "project_handle",
+                        "socialPlatform": "x",
+                        "source": null,
+                        "ipAddress": "198.51.100.22",
+                        "createdAt": "2026-01-06T10:30:00.000Z"
+                      }
+                    ],
+                    "pagination": {
+                      "currentPage": 0,
+                      "pageSize": 20,
+                      "totalElements": 2,
+                      "totalPages": 1
+                    }
+                  },
+                  "timestamp": "2026-01-07T15:40:37.714Z"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRequestError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "An unexpected error occurred. Please try again later."
+                  },
+                  "timestamp": "2026-01-07T15:40:37.714Z"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "Request Demo"
